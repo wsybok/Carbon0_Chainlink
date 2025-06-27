@@ -990,9 +990,9 @@ export default function Home() {
                     disabled={loading}
                     className={`flex items-center gap-3 ${
                       availableWallets.some(w => w.type === WalletType.METAMASK)
-                        ? 'bg-orange-500 hover:bg-orange-600' 
-                        : 'bg-gray-400 hover:bg-gray-500'
-                    } disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors min-w-[150px]`}
+                        ? 'bg-gray-800 hover:bg-gray-900 border-2 border-gray-600 hover:border-gray-500' 
+                        : 'bg-gray-500 hover:bg-gray-600 border-2 border-gray-400'
+                    } disabled:bg-gray-400 disabled:border-gray-300 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 min-w-[160px] shadow-lg hover:shadow-xl transform hover:scale-105`}
                   >
                     <img 
                       src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/metamask-icon.svg" 
