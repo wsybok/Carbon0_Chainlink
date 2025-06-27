@@ -1312,15 +1312,12 @@ export default function Home() {
                 {activeTab === 'register' && (
                   <div className="space-y-6">
                     <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                      📝 Register Gold Standard Project (One Project = One NFT)
+                      📝 Register Gold Standard Project
                     </h3>
-                    <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                      <p className="text-green-800 text-sm">
-                        🎯 <strong>One Project = One NFT Model:</strong> Each Gold Standard project (e.g., GS-15234) can only have ONE BatchNFT. 
-                        This creates a clean mapping where each project gets exactly one NFT representation, avoiding duplicates.
-                      </p>
-                      <p className="text-green-700 text-xs mt-2">
-                        ✅ Our system will prevent registering the same project twice
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-blue-800 text-sm">
+                        💡 <strong>Project Registration:</strong> Register your carbon credit project from the Gold Standard registry 
+                        to begin the verification and tokenization process.
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1371,33 +1368,22 @@ export default function Home() {
                         </button>
                       </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-gray-800 mb-2">📋 What this does:</h4>
+                        <h4 className="font-semibold text-gray-800 mb-2">📋 Registration Process:</h4>
                         <ul className="text-sm text-gray-600 space-y-1">
-                          <li>• Registers credits from a Gold Standard project for NFT creation</li>
-                          <li>• Creates a unique internal Credit ID for oracle tracking</li>
-                          <li>• Sets up project for Chainlink verification</li>
-                          <li>• <strong>Enforces one project = one NFT policy</strong></li>
+                          <li>• Connects your carbon project to our verification system</li>
+                          <li>• Prepares for real-time data validation via Chainlink</li>
+                          <li>• Enables NFT and token creation for verified credits</li>
+                          <li>• Establishes project ownership and tracking</li>
                         </ul>
                         
-                        <div className="mt-4 p-3 bg-green-100 rounded border border-green-300">
-                          <h5 className="font-medium text-green-800 mb-1">🎯 One Project = One NFT:</h5>
-                          <div className="text-green-700 text-xs space-y-1">
-                            <p><strong>GS-15234</strong> → Credit ID 1 → ONE BatchNFT ✅</p>
-                            <p><strong>GS-15235</strong> → Credit ID 2 → ONE BatchNFT ✅</p>
-                            <p><strong>GS-15236</strong> → Credit ID 3 → ONE BatchNFT ✅</p>
-                            <p className="text-green-600">✅ Clean, simple, no duplicates!</p>
-                          </div>
-                        </div>
-                        
                         <div className="mt-4 p-3 bg-blue-100 rounded">
-                          <h5 className="font-medium text-blue-800 mb-1">🎯 Available Demo Projects:</h5>
-                          <div className="text-blue-700 text-xs space-y-1">
-                            <p><strong>✅ Available:</strong> GS-15235 (Wind Farm Maharashtra India - 75,000 credits)</p>
-                            <p><strong>✅ Available:</strong> GS-15236 (Improved Cookstoves Cambodia - pending)</p>
-                            <p><strong>❌ Used:</strong> GS-15234 (Solar Kenya - already has BatchNFT #1)</p>
+                          <h5 className="font-medium text-blue-800 mb-1">🎯 Demo Projects:</h5>
+                          <div className="text-blue-700 text-sm space-y-1">
+                            <p><strong>GS-15235:</strong> Wind Farm Maharashtra India (75,000 credits)</p>
+                            <p><strong>GS-15236:</strong> Improved Cookstoves Cambodia</p>
                           </div>
-                          <p className="text-blue-600 text-sm mt-2 font-medium">
-                            💡 Use GS-15235 for your next registration!
+                          <p className="text-blue-600 text-xs mt-2">
+                            These projects have live API data for demonstration
                           </p>
                         </div>
                       </div>
