@@ -655,6 +655,19 @@ export default function Home() {
       const currentBlock = await provider.getBlockNumber();
       const network = await provider.getNetwork();
       
+      // Map chain ID to proper network name
+      const getNetworkName = (chainId: bigint) => {
+        switch (chainId.toString()) {
+          case '43113': return 'Avalanche Fuji Testnet';
+          case '43114': return 'Avalanche Mainnet';
+          case '1': return 'Ethereum Mainnet';
+          case '11155111': return 'Sepolia Testnet';
+          default: return `Unknown Network (${chainId})`;
+        }
+      };
+      
+      const networkName = getNetworkName(network.chainId);
+      
       // Get user retirement IDs from smart contract
       const retirementIds = await projectToken.getUserRetirements(userAddress);
       
@@ -682,7 +695,7 @@ export default function Home() {
           blockTimestamp: blockTimestamp,
           tokenAddress,
           // Blockchain verification data
-          network: network.name,
+          network: networkName,
           chainId: network.chainId.toString(),
           currentBlock,
           dataSource: 'Smart Contract Call',
