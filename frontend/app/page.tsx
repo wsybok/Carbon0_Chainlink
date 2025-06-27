@@ -86,6 +86,11 @@ export default function Home() {
   const [projectDetailsLoading, setProjectDetailsLoading] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
 
+  // Retirement certificate states
+  const [retirementCertificate, setRetirementCertificate] = useState<any>(null);
+  const [showRetirementModal, setShowRetirementModal] = useState(false);
+  const [retirementHistory, setRetirementHistory] = useState<any[]>([]);
+
   // Set client-side flag to prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
@@ -275,16 +280,49 @@ export default function Home() {
   };
 
   const retireTokens = async () => {
-    await executeTransaction('Retire Tokens', async () => {
+    try {
+      setTxLoading('Retire Tokens');
+      setTxResult('');
+      
       const { signer } = await getWeb3(connectedWallet || undefined);
       const projectToken = getProjectTokenContract(retireForm.tokenAddress, signer);
       
       const amount = ethers.parseUnits(retireForm.amount, 18);
       
+      // Get the next retirement ID before retiring
+      const nextRetirementId = await projectToken.nextRetirementId();
+      
       const tx = await projectToken.retire(amount, retireForm.reason);
       await tx.wait();
-      return tx;
-    });
+      
+      // Fetch the retirement certificate
+      const retirementRecord = await projectToken.getRetirementRecord(nextRetirementId);
+      
+      setRetirementCertificate({
+        retirementId: nextRetirementId.toString(),
+        user: retirementRecord.user,
+        amount: ethers.formatUnits(retirementRecord.amount, 18),
+        reason: retirementRecord.reason,
+        timestamp: new Date(Number(retirementRecord.timestamp) * 1000).toLocaleString(),
+        transactionHash: tx.hash,
+        tokenAddress: retireForm.tokenAddress
+      });
+      
+      setShowRetirementModal(true);
+      setTxResult(`✅ Retire Tokens successful! Retirement Certificate ID: ${nextRetirementId.toString()}`);
+    } catch (error: any) {
+      // Only log non-user-rejection errors to console
+      const errorMessage = parseContractError(error);
+      if (!errorMessage.includes('cancelled by user')) {
+        console.error(`Retire Tokens failed:`, error);
+      } else {
+        // For user cancellations, just log a simple message
+        console.log(`Retire Tokens cancelled by user`);
+      }
+      setTxResult(`❌ Retire Tokens failed: ${errorMessage}`);
+    } finally {
+      setTxLoading('');
+    }
   };
 
   // View Data functions
@@ -593,6 +631,65 @@ export default function Home() {
       loadGalleryNFTs();
     }
   }, [connected]);
+
+  // Fetch user retirement history
+  const fetchRetirementHistory = async (tokenAddress: string, userAddress: string) => {
+    try {
+      setTxLoading('Fetching Retirement History');
+      
+      if (!tokenAddress || !ethers.isAddress(tokenAddress)) {
+        setTxResult(`❌ Please enter a valid token contract address`);
+        return;
+      }
+      
+      if (!userAddress || !ethers.isAddress(userAddress)) {
+        setTxResult(`❌ Please enter a valid user address`);
+        return;
+      }
+      
+      const { signer } = await getWeb3(connectedWallet || undefined);
+      const projectToken = getProjectTokenContract(tokenAddress, signer);
+      
+      // Get user retirement IDs
+      const retirementIds = await projectToken.getUserRetirements(userAddress);
+      
+      if (retirementIds.length === 0) {
+        setRetirementHistory([]);
+        setTxResult(`ℹ️ No retirement records found for this address`);
+        return;
+      }
+      
+      // Fetch details for each retirement
+      const history = [];
+      for (const retirementId of retirementIds) {
+        const record = await projectToken.getRetirementRecord(retirementId);
+        history.push({
+          retirementId: retirementId.toString(),
+          user: record.user,
+          amount: ethers.formatUnits(record.amount, 18),
+          reason: record.reason,
+          timestamp: new Date(Number(record.timestamp) * 1000).toLocaleString(),
+          tokenAddress
+        });
+      }
+      
+      setRetirementHistory(history);
+      setTxResult(`✅ Found ${history.length} retirement record(s)`);
+    } catch (error: any) {
+      console.error('Fetch retirement history failed:', error);
+      setRetirementHistory([]);
+      
+      if (error.code === 'CALL_EXCEPTION') {
+        setTxResult(`❌ Invalid token contract address or contract does not exist`);
+      } else if (error.message.includes('network')) {
+        setTxResult(`❌ Network error: Please check your connection and try again`);
+      } else {
+        setTxResult(`❌ Failed to fetch retirement history: ${error.reason || error.message}`);
+      }
+    } finally {
+      setTxLoading('');
+    }
+  };
 
   // Fetch project details from Gold Standard API
   const fetchProjectDetails = async (projectId: string) => {
@@ -1486,6 +1583,33 @@ export default function Home() {
                             </button>
                           </div>
                         </div>
+
+                        <div className="bg-red-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-red-800 mb-2">🏆 View Retirement History</h4>
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={viewTokenForm.tokenAddress}
+                              onChange={(e) => setViewTokenForm({...viewTokenForm, tokenAddress: e.target.value})}
+                              placeholder="Token Address"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                            />
+                            <input
+                              type="text"
+                              value={viewTokenForm.userAddress}
+                              onChange={(e) => setViewTokenForm({...viewTokenForm, userAddress: e.target.value})}
+                              placeholder="User Address"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                            />
+                            <button 
+                              onClick={() => fetchRetirementHistory(viewTokenForm.tokenAddress, viewTokenForm.userAddress)}
+                              disabled={!!txLoading}
+                              className="w-full bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 disabled:opacity-50"
+                            >
+                              {txLoading === 'Fetching Retirement History' ? '⏳ Loading...' : 'View History'}
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="bg-gray-50 p-4 rounded-lg">
@@ -1545,17 +1669,52 @@ export default function Home() {
                           </div>
                         )}
 
-                        {!creditData && !batchData && !tokenData && (
+                        {/* Retirement History Display */}
+                        {retirementHistory.length > 0 && (
+                          <div className="mb-4 p-3 bg-red-100 rounded">
+                            <h5 className="font-medium text-red-800 mb-2">🏆 Retirement History ({retirementHistory.length} record{retirementHistory.length > 1 ? 's' : ''})</h5>
+                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                              {retirementHistory.map((record, index) => (
+                                <div key={index} className="bg-white p-2 rounded border border-red-200">
+                                  <div className="text-sm text-red-700 space-y-1">
+                                    <div className="flex justify-between items-start">
+                                      <span className="font-medium">Certificate #{record.retirementId}</span>
+                                      <span className="text-red-600 font-bold">{record.amount} tonnes CO₂e</span>
+                                    </div>
+                                    <p><strong>Date:</strong> {record.timestamp}</p>
+                                    <p><strong>Reason:</strong> <em>"{record.reason}"</em></p>
+                                    <p className="text-xs text-gray-600">
+                                      <strong>Impact:</strong> ~{Math.round(parseFloat(record.amount) * 2.5)} trees planted equivalent
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="mt-2 p-2 bg-red-50 rounded text-center">
+                              <p className="text-xs text-red-700">
+                                <strong>Total Offset:</strong> {retirementHistory.reduce((sum, record) => sum + parseFloat(record.amount), 0).toFixed(2)} tonnes CO₂e
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {!creditData && !batchData && !tokenData && retirementHistory.length === 0 && (
                           <div className="text-sm text-gray-500">
                             <p>Available Queries:</p>
                             <ul className="mt-2 space-y-1">
                               <li>• <strong>Credit Status:</strong> Verification status, Chainlink data</li>
                               <li>• <strong>BatchNFT Metadata:</strong> Dynamic NFT data with oracle info</li>
                               <li>• <strong>Token Info:</strong> Balance, total supply, retirement records</li>
+                              <li>• <strong>Retirement History:</strong> View all carbon offsetting certificates</li>
                             </ul>
                             <div className="mt-4 p-3 bg-blue-100 rounded">
                               <p className="text-blue-800 text-sm">
                                 💡 Use existing deployed contracts or create new ones through the demo
+                              </p>
+                            </div>
+                            <div className="mt-4 p-3 bg-green-100 rounded">
+                              <p className="text-green-800 text-sm">
+                                🏆 <strong>New:</strong> When you retire tokens, you now get official retirement certificates!
                               </p>
                             </div>
                           </div>
@@ -1803,6 +1962,150 @@ export default function Home() {
                 >
                   Close
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Retirement Certificate Modal */}
+        {showRetirementModal && retirementCertificate && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
+              {/* Certificate Header */}
+              <div className="bg-gradient-to-r from-green-600 to-purple-600 text-white p-6 rounded-t-xl text-center">
+                <div className="text-4xl mb-3">🏆</div>
+                <h2 className="text-2xl font-bold mb-2">Carbon Credit Retirement Certificate</h2>
+                <p className="text-green-100">Official Proof of Carbon Offsetting</p>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Certificate Details */}
+                <div className="bg-gradient-to-br from-green-50 to-purple-50 p-6 rounded-lg border-2 border-green-200">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">Certificate of Retirement</h3>
+                    <p className="text-gray-600">This certifies that the following carbon credits have been permanently retired</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white p-4 rounded-lg">
+                      <h4 className="font-semibold text-green-800 mb-3">📋 Certificate Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">Certificate ID:</span>
+                          <span className="ml-2 font-mono text-green-600">#{retirementCertificate.retirementId}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Amount Retired:</span>
+                          <span className="ml-2 font-bold text-green-600">{retirementCertificate.amount} tonnes CO₂e</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Retirement Date:</span>
+                          <span className="ml-2">{retirementCertificate.timestamp}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Retired By:</span>
+                          <span className="ml-2 font-mono text-xs break-all">{retirementCertificate.user}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 rounded-lg">
+                      <h4 className="font-semibold text-purple-800 mb-3">🎯 Offsetting Purpose</h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">Reason:</span>
+                          <div className="mt-1 p-2 bg-purple-50 rounded text-purple-800 italic">
+                            "{retirementCertificate.reason}"
+                          </div>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Token Contract:</span>
+                          <span className="ml-2 font-mono text-xs break-all text-purple-600">{retirementCertificate.tokenAddress}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Environmental Impact */}
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 mb-3">🌍 Environmental Impact</h4>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-green-600">{retirementCertificate.amount}</div>
+                        <div className="text-xs text-gray-600">Tonnes CO₂e Offset</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-blue-600">{Math.round(parseFloat(retirementCertificate.amount) * 2.5)}</div>
+                        <div className="text-xs text-gray-600">Equivalent Trees Planted</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-purple-600">{Math.round(parseFloat(retirementCertificate.amount) * 0.22)}</div>
+                        <div className="text-xs text-gray-600">Cars Off Road (1 year)</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Blockchain Verification */}
+                  <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-2xl">⛓️</span>
+                      <h4 className="font-semibold text-gray-800">Blockchain Verification</h4>
+                    </div>
+                    <div className="text-sm text-gray-700 space-y-1">
+                      <div>
+                        <span className="font-medium">Transaction Hash:</span>
+                        <span className="ml-2 font-mono text-xs break-all text-blue-600">{retirementCertificate.transactionHash}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Blockchain:</span>
+                        <span className="ml-2">Avalanche Fuji Testnet</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2">
+                        This retirement is permanently recorded on the blockchain and cannot be reversed or double-counted.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Certificate Footer */}
+                <div className="text-center text-sm text-gray-600">
+                  <p className="mb-2">
+                    🌟 <strong>Congratulations!</strong> You have successfully offset your carbon footprint.
+                  </p>
+                  <p>
+                    This certificate serves as proof of your commitment to environmental sustainability.
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  OneTon: Verified Carbon Credit NFTs
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      // Copy certificate details to clipboard
+                      const certificateText = `Carbon Credit Retirement Certificate
+Certificate ID: #${retirementCertificate.retirementId}
+Amount: ${retirementCertificate.amount} tonnes CO₂e
+Date: ${retirementCertificate.timestamp}
+Reason: ${retirementCertificate.reason}
+Blockchain TX: ${retirementCertificate.transactionHash}`;
+                      navigator.clipboard.writeText(certificateText);
+                    }}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm"
+                  >
+                    📋 Copy Details
+                  </button>
+                  <button
+                    onClick={() => setShowRetirementModal(false)}
+                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

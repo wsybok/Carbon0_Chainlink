@@ -48,7 +48,10 @@ export const PROJECT_TOKEN_ABI = [
   'function mint(address to, uint256 amount) external',
   'function retire(uint256 amount, string memory reason) external',
   'function totalRetired() external view returns (uint256)',
-  'function batchId() external view returns (uint256)'
+  'function batchId() external view returns (uint256)',
+  'function nextRetirementId() external view returns (uint256)',
+  'function getUserRetirements(address user) external view returns (uint256[] memory)',
+  'function getRetirementRecord(uint256 retirementId) external view returns (tuple(address user, uint256 amount, string reason, uint256 timestamp, uint256 retirementId))'
 ];
 
 // Helper function to detect available wallets
