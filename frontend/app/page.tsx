@@ -60,7 +60,7 @@ export default function Home() {
 
   // View Data form states
   const [viewCreditForm, setViewCreditForm] = useState({
-    creditId: '2',
+    projectId: 'GS-15234',
   });
 
   const [viewBatchForm, setViewBatchForm] = useState({
@@ -434,22 +434,34 @@ export default function Home() {
       const { signer } = await getWeb3(connectedWallet || undefined);
       const { oracle } = getContracts(signer);
       
-      const creditId = parseInt(viewCreditForm.creditId);
-      
-      // Check if credit ID is valid (greater than 0 and less than nextCreditId)
+      // 🎯 Find Credit ID from Project ID (same logic as verification)
       const nextCreditId = await oracle.nextCreditId();
-      if (creditId < 1 || creditId >= Number(nextCreditId)) {
+      let foundCreditId = null;
+      
+      for (let i = 1; i < Number(nextCreditId); i++) {
+        try {
+          const credit = await oracle.getCarbonCredit(i);
+          if (credit.projectId === viewCreditForm.projectId) {
+            foundCreditId = i;
+            break;
+          }
+        } catch (error) {
+          // Credit doesn't exist, skip
+        }
+      }
+      
+      if (!foundCreditId) {
         setCreditData(null);
-        setTxResult(`❌ Credit ID ${creditId} does not exist. Valid range: 1 to ${Number(nextCreditId) - 1}`);
+        setTxResult(`❌ No registered credit found for project ${viewCreditForm.projectId}.\n\n💡 Please register the project first or check available project IDs in the gallery.`);
         return;
       }
       
-      const credit = await oracle.getCarbonCredit(creditId);
+      const credit = await oracle.getCarbonCredit(foundCreditId);
       
       // Also get verification request if exists
       let verificationData = null;
       try {
-        const requestId = await oracle.creditToRequest(creditId);
+        const requestId = await oracle.creditToRequest(foundCreditId);
         if (requestId !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
           verificationData = await oracle.getVerificationRequest(requestId);
         }
@@ -458,7 +470,7 @@ export default function Home() {
       }
       
       setCreditData({
-        creditId,
+        creditId: foundCreditId,
         amount: ethers.formatUnits(credit.amount, 18),
         projectId: credit.projectId,
         expiryDate: new Date(Number(credit.expiryDate) * 1000).toLocaleDateString(),
@@ -474,14 +486,14 @@ export default function Home() {
         } : null
       });
       
-      setTxResult(`✅ Credit status retrieved successfully!`);
+      setTxResult(`✅ Credit status retrieved successfully! Found Credit ID: ${foundCreditId}`);
     } catch (error: any) {
       console.error('Check credit status failed:', error);
       setCreditData(null);
       
       // Better error handling
       if (error.code === 'CALL_EXCEPTION') {
-        setTxResult(`❌ Credit ID ${viewCreditForm.creditId} does not exist or is invalid`);
+        setTxResult(`❌ Project ${viewCreditForm.projectId} not found or invalid`);
       } else if (error.message.includes('network')) {
         setTxResult(`❌ Network error: Please check your connection and try again`);
       } else {
@@ -888,7 +900,7 @@ export default function Home() {
     { id: 'mint-batch', label: '🎨 Mint BatchNFT', icon: '🎨' },
     { id: 'mint-tokens', label: '🪙 Mint Tokens', icon: '🪙' },
     { id: 'retire', label: '♻️ Retire Tokens', icon: '♻️' },
-    { id: 'view', label: '👁️ View Data', icon: '👁️' },
+    { id: 'view', label: '👁️ View System Data', icon: '👁️' },
   ];
 
   // Show loading screen during hydration
@@ -1826,46 +1838,55 @@ export default function Home() {
                     <h3 className="text-2xl font-semibold text-gray-800 mb-4">
                       👁️ View System Data
                     </h3>
+                    <p className="text-gray-600 mb-6">
+                      🎯 Query your registered projects and NFTs using user-friendly Project IDs instead of internal system IDs
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div className="bg-orange-50 p-4 rounded-lg">
                           <h4 className="font-semibold text-orange-800 mb-2">🔍 Check Credit Status</h4>
-                          <div className="flex space-x-2">
+                          <div className="space-y-2">
                             <input
-                              type="number"
-                              value={viewCreditForm.creditId}
-                              onChange={(e) => setViewCreditForm({...viewCreditForm, creditId: e.target.value})}
-                              placeholder="Credit ID"
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              type="text"
+                              value={viewCreditForm.projectId}
+                              onChange={(e) => setViewCreditForm({...viewCreditForm, projectId: e.target.value})}
+                              placeholder="Project ID (e.g., GS-15234)"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                             />
                             <button 
                               onClick={checkCreditStatus}
                               disabled={!!txLoading}
-                              className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm hover:bg-orange-700 disabled:opacity-50"
+                              className="w-full bg-orange-600 text-white px-4 py-2 rounded-md text-sm hover:bg-orange-700 disabled:opacity-50"
                             >
-                              {txLoading === 'Check Credit Status' ? '⏳' : 'Check'}
+                              {txLoading === 'Check Credit Status' ? '⏳ Searching...' : '🔍 Check Project Status'}
                             </button>
                           </div>
+                          <p className="text-xs text-orange-700 mt-2">
+                            💡 Enter Gold Standard Project ID (system finds Credit ID automatically)
+                          </p>
                         </div>
 
                         <div className="bg-green-50 p-4 rounded-lg">
                           <h4 className="font-semibold text-green-800 mb-2">🎨 View BatchNFT</h4>
-                          <div className="flex space-x-2">
+                          <div className="space-y-2">
                             <input
                               type="number"
                               value={viewBatchForm.batchId}
                               onChange={(e) => setViewBatchForm({...viewBatchForm, batchId: e.target.value})}
-                              placeholder="Batch ID"
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              placeholder="BatchNFT ID (1, 2, 3...)"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                             />
                             <button 
                               onClick={viewBatchNFT}
                               disabled={!!txLoading}
-                              className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
+                              className="w-full bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
                             >
-                              {txLoading === 'View BatchNFT' ? '⏳' : 'View'}
+                              {txLoading === 'View BatchNFT' ? '⏳ Loading...' : '🎨 View BatchNFT Details'}
                             </button>
                           </div>
+                          <p className="text-xs text-green-700 mt-2">
+                            💡 Check the gallery above for available BatchNFT IDs
+                          </p>
                         </div>
 
                         <div className="bg-purple-50 p-4 rounded-lg">
@@ -1875,14 +1896,14 @@ export default function Home() {
                               type="text"
                               value={viewTokenForm.tokenAddress}
                               onChange={(e) => setViewTokenForm({...viewTokenForm, tokenAddress: e.target.value})}
-                              placeholder="Token Address"
+                              placeholder="ProjectToken Contract Address"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
                             />
                             <input
                               type="text"
                               value={viewTokenForm.userAddress}
                               onChange={(e) => setViewTokenForm({...viewTokenForm, userAddress: e.target.value})}
-                              placeholder="User Address"
+                              placeholder="User Wallet Address"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
                             />
                             <button 
@@ -1890,9 +1911,12 @@ export default function Home() {
                               disabled={!!txLoading}
                               className="w-full bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 disabled:opacity-50"
                             >
-                              {txLoading === 'Check Token Balance' ? '⏳ Checking...' : 'Check Balance'}
+                              {txLoading === 'Check Token Balance' ? '⏳ Querying...' : '🪙 Check Balance & Details'}
                             </button>
                           </div>
+                          <p className="text-xs text-purple-700 mt-2">
+                            💡 Get token info from BatchNFT gallery or mint new tokens first
+                          </p>
                         </div>
 
                         <div className="bg-red-50 p-4 rounded-lg border border-red-200">
