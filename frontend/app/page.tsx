@@ -867,6 +867,113 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Contract Addresses - Prominent Display for Judges */}
+        {connected && (
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+              📋 Deployed Contracts - Avalanche Fuji Testnet
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Live smart contracts powering the OneTon carbon credit verification system
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
+                <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
+                  🔗 Carbon Verification Oracle
+                </h3>
+                <p className="text-xs font-mono break-all text-orange-700 bg-white p-3 rounded mb-3">
+                  0xc195a76987dd0E62407811dc21927C322a85e9eF
+                </p>
+                <div className="flex space-x-2">
+                  <a
+                    href="https://testnet.snowtrace.io/address/0xc195a76987dd0E62407811dc21927C322a85e9eF"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-orange-600 text-white px-3 py-2 rounded text-xs text-center hover:bg-orange-700 transition-colors"
+                  >
+                    🔍 Explorer
+                  </a>
+                  <a
+                    href="https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/CarbonVerificationOracle.sol"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded text-xs text-center hover:bg-gray-800 transition-colors"
+                  >
+                    📄 Code
+                  </a>
+                </div>
+              </div>
+
+              <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-3 flex items-center">
+                  🎨 Batch NFT Contract
+                </h3>
+                <p className="text-xs font-mono break-all text-green-700 bg-white p-3 rounded mb-3">
+                  0x4134f7B9eCC847D8548176471A31D408959254f9
+                </p>
+                <div className="flex space-x-2">
+                  <a
+                    href="https://testnet.snowtrace.io/address/0x4134f7B9eCC847D8548176471A31D408959254f9"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-xs text-center hover:bg-green-700 transition-colors"
+                  >
+                    🔍 Explorer
+                  </a>
+                  <a
+                    href="https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/BatchNFT.sol"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded text-xs text-center hover:bg-gray-800 transition-colors"
+                  >
+                    📄 Code
+                  </a>
+                </div>
+              </div>
+
+              <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                <h3 className="font-semibold text-purple-800 mb-3 flex items-center">
+                  🏭 Token Factory Contract
+                </h3>
+                <p className="text-xs font-mono break-all text-purple-700 bg-white p-3 rounded mb-3">
+                  0x0B6D191B449EBB814Eb0332490683a802947b2CA
+                </p>
+                <div className="flex space-x-2">
+                  <a
+                    href="https://testnet.snowtrace.io/address/0x0B6D191B449EBB814Eb0332490683a802947b2CA"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-purple-600 text-white px-3 py-2 rounded text-xs text-center hover:bg-purple-700 transition-colors"
+                  >
+                    🔍 Explorer
+                  </a>
+                  <a
+                    href="https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/TokenFactory.sol"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded text-xs text-center hover:bg-gray-800 transition-colors"
+                  >
+                    📄 Code
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">⛓️</span>
+                <div>
+                  <h4 className="font-semibold text-blue-800">Blockchain Verification</h4>
+                  <p className="text-sm text-blue-700">
+                    All contracts are verified and deployed on Avalanche Fuji Testnet. 
+                    Click "Explorer" to view on-chain transactions and "Code" to see smart contract source.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Key Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="bg-white rounded-lg shadow-lg p-6 text-center">
@@ -1023,32 +1130,6 @@ export default function Home() {
         {/* Interactive Demo Sections */}
         {connected && (
           <div className="space-y-8">
-            {/* Contract Addresses */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                📋 Deployed Contracts
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-orange-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-orange-800 mb-2">Verification Oracle</h3>
-                  <p className="text-xs font-mono break-all text-orange-600">
-                    0xc195a76987dd0E62407811dc21927C322a85e9eF
-                  </p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-green-800 mb-2">Batch NFT</h3>
-                  <p className="text-xs font-mono break-all text-green-600">
-                    0x4134f7B9eCC847D8548176471A31D408959254f9
-                  </p>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-purple-800 mb-2">Token Factory</h3>
-                  <p className="text-xs font-mono break-all text-purple-600">
-                    0x0B6D191B449EBB814Eb0332490683a802947b2CA
-                  </p>
-                </div>
-              </div>
-            </div>
 
             {/* Interactive Tabs */}
             <div className="bg-white rounded-lg shadow-lg">
