@@ -286,6 +286,15 @@ export default function Home() {
       const { oracle } = getContracts(signer);
       
       const creditId = parseInt(viewCreditForm.creditId);
+      
+      // Check if credit ID is valid (greater than 0 and less than nextCreditId)
+      const nextCreditId = await oracle.nextCreditId();
+      if (creditId < 1 || creditId >= Number(nextCreditId)) {
+        setCreditData(null);
+        setTxResult(`❌ Credit ID ${creditId} does not exist. Valid range: 1 to ${Number(nextCreditId) - 1}`);
+        return;
+      }
+      
       const credit = await oracle.getCarbonCredit(creditId);
       
       // Also get verification request if exists
@@ -320,7 +329,15 @@ export default function Home() {
     } catch (error: any) {
       console.error('Check credit status failed:', error);
       setCreditData(null);
-      setTxResult(`❌ Failed to get credit status: ${error.message}`);
+      
+      // Better error handling
+      if (error.code === 'CALL_EXCEPTION') {
+        setTxResult(`❌ Credit ID ${viewCreditForm.creditId} does not exist or is invalid`);
+      } else if (error.message.includes('network')) {
+        setTxResult(`❌ Network error: Please check your connection and try again`);
+      } else {
+        setTxResult(`❌ Failed to get credit status: ${error.reason || error.message}`);
+      }
     } finally {
       setTxLoading('');
     }
@@ -333,8 +350,24 @@ export default function Home() {
       const { batchNFT } = getContracts(signer);
       
       const batchId = parseInt(viewBatchForm.batchId);
+      
+      // Check if batch ID is valid (greater than 0 and less than nextBatchId)
+      const nextBatchId = await batchNFT.nextBatchId();
+      if (batchId < 1 || batchId >= Number(nextBatchId)) {
+        setBatchData(null);
+        setTxResult(`❌ BatchNFT ID ${batchId} does not exist. Valid range: 1 to ${Number(nextBatchId) - 1}`);
+        return;
+      }
+      
       const batch = await batchNFT.getBatchMetadata(batchId);
-      const tokenURI = await batchNFT.tokenURI(batchId);
+      
+      // Try to get tokenURI, but handle gracefully if it fails
+      let tokenURI = 'Not available';
+      try {
+        tokenURI = await batchNFT.tokenURI(batchId);
+      } catch (uriError) {
+        console.log('TokenURI not available for this batch');
+      }
       
       setBatchData({
         batchId,
@@ -354,7 +387,17 @@ export default function Home() {
     } catch (error: any) {
       console.error('View BatchNFT failed:', error);
       setBatchData(null);
-      setTxResult(`❌ Failed to get BatchNFT data: ${error.message}`);
+      
+      // Better error handling
+      if (error.code === 'CALL_EXCEPTION') {
+        setTxResult(`❌ BatchNFT ID ${viewBatchForm.batchId} does not exist. Please check the batch ID and try again.`);
+      } else if (error.message.includes('network')) {
+        setTxResult(`❌ Network error: Please check your connection and try again`);
+      } else if (error.message.includes('missing revert data')) {
+        setTxResult(`❌ BatchNFT ID ${viewBatchForm.batchId} has not been minted yet`);
+      } else {
+        setTxResult(`❌ Failed to get BatchNFT data: ${error.reason || error.message}`);
+      }
     } finally {
       setTxLoading('');
     }
@@ -363,6 +406,20 @@ export default function Home() {
   const checkTokenBalance = async () => {
     try {
       setTxLoading('Check Token Balance');
+      
+      // Validate inputs
+      if (!viewTokenForm.tokenAddress || !ethers.isAddress(viewTokenForm.tokenAddress)) {
+        setTokenData(null);
+        setTxResult(`❌ Please enter a valid token contract address`);
+        return;
+      }
+      
+      if (!viewTokenForm.userAddress || !ethers.isAddress(viewTokenForm.userAddress)) {
+        setTokenData(null);
+        setTxResult(`❌ Please enter a valid user address`);
+        return;
+      }
+      
       const { signer } = await getWeb3(connectedWallet || undefined);
       const projectToken = getProjectTokenContract(viewTokenForm.tokenAddress, signer);
       
@@ -388,7 +445,17 @@ export default function Home() {
     } catch (error: any) {
       console.error('Check token balance failed:', error);
       setTokenData(null);
-      setTxResult(`❌ Failed to get token balance: ${error.message}`);
+      
+      // Better error handling
+      if (error.code === 'CALL_EXCEPTION') {
+        setTxResult(`❌ Invalid token contract address or contract does not exist`);
+      } else if (error.message.includes('network')) {
+        setTxResult(`❌ Network error: Please check your connection and try again`);
+      } else if (error.message.includes('missing revert data')) {
+        setTxResult(`❌ Contract at ${viewTokenForm.tokenAddress} is not a valid ProjectToken`);
+      } else {
+        setTxResult(`❌ Failed to get token balance: ${error.reason || error.message}`);
+      }
     } finally {
       setTxLoading('');
     }
