@@ -93,6 +93,13 @@ export default function Home() {
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [isPollingVerification, setIsPollingVerification] = useState(false);
 
+  // Utility function to truncate long addresses
+  const truncateAddress = (address: string, startChars = 6, endChars = 4) => {
+    if (!address) return '';
+    if (address.length <= startChars + endChars) return address;
+    return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
+  };
+
   // Set client-side flag to prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
@@ -315,6 +322,14 @@ export default function Home() {
         
         if (verificationData.fulfilled) {
           // 🎉 Chainlink callback received!
+          // Ensure proper type conversion for verification status
+          const statusValue = Number(verificationData.verificationStatus);
+          console.log('🔗 Chainlink verification status:', {
+            raw: verificationData.verificationStatus,
+            converted: statusValue,
+            type: typeof verificationData.verificationStatus
+          });
+          
           setVerificationResult({
             projectId: verifyForm.projectId,
             creditId: creditId,
@@ -322,7 +337,7 @@ export default function Home() {
             gsId: verificationData.gsId,
             availableForSale: verificationData.availableForSale.toString(),
             timestamp: verificationData.timestamp,
-            verificationStatus: Number(verificationData.verificationStatus), // 0=pending, 1=verified, 2=failed
+            verificationStatus: statusValue, // 0=pending, 1=verified, 2=failed
             fulfilled: verificationData.fulfilled,
             callbackTime: new Date().toLocaleString()
           });
@@ -331,8 +346,8 @@ export default function Home() {
           setIsPollingVerification(false);
           
           // Update the transaction result with callback data
-          const statusText = verificationData.verificationStatus === 1 ? '✅ VERIFIED' : 
-                           verificationData.verificationStatus === 2 ? '❌ FAILED' : '⏳ PENDING';
+          const statusText = statusValue === 1 ? '✅ VERIFIED' : 
+                           statusValue === 2 ? '❌ FAILED' : '⏳ PENDING';
           setTxResult(`🔗 Chainlink Functions completed! Status: ${statusText} | Credits Available: ${verificationData.availableForSale}`);
         }
         
@@ -519,7 +534,7 @@ export default function Home() {
           gsId: verificationData.gsId,
           availableForSale: verificationData.availableForSale.toString(),
           timestamp: verificationData.timestamp,
-          verificationStatus: verificationData.verificationStatus
+          verificationStatus: Number(verificationData.verificationStatus) // Ensure proper type conversion
         } : null
       });
       
@@ -1937,7 +1952,11 @@ export default function Home() {
                                 <div className="text-sm text-gray-600 space-y-1">
                                   <p><strong>Credit ID:</strong> #{creditData.creditId}</p>
                                   <p><strong>Amount:</strong> {creditData.amount} tonnes CO2</p>
-                                  <p><strong>Owner:</strong> {creditData.owner}</p>
+                                  <p><strong>Owner:</strong> 
+                                    <span className="font-mono text-xs" title={creditData.owner}>
+                                      {truncateAddress(creditData.owner)}
+                                    </span>
+                                  </p>
                                   <p><strong>Created:</strong> {creditData.createdAt}</p>
                                   <p><strong>Verified:</strong> {creditData.verifiedAt}</p>
                                   <p><strong>Expires:</strong> {creditData.expiryDate}</p>
@@ -1990,7 +2009,11 @@ export default function Home() {
                                   </div>
                                 </div>
                                 <div className="mt-2 text-xs text-gray-600">
-                                  <p><strong>Token Contract:</strong> {batchData.projectTokenAddress}</p>
+                                  <p><strong>Token Contract:</strong> 
+                                    <span className="font-mono" title={batchData.projectTokenAddress}>
+                                      {truncateAddress(batchData.projectTokenAddress)}
+                                    </span>
+                                  </p>
                                   <p><strong>Created:</strong> {batchData.createdAt}</p>
                                 </div>
                               </div>
@@ -2017,7 +2040,11 @@ export default function Home() {
                               <p><strong>Total Supply:</strong> {tokenData.totalSupply}</p>
                               <p><strong>Total Retired:</strong> {tokenData.totalRetired}</p>
                               <p><strong>Batch ID:</strong> {tokenData.batchId}</p>
-                              <p><strong>User:</strong> {tokenData.userAddress}</p>
+                              <p><strong>User:</strong> 
+                                <span className="font-mono text-xs" title={tokenData.userAddress}>
+                                  {truncateAddress(tokenData.userAddress)}
+                                </span>
+                              </p>
                             </div>
                           </div>
                         )}
