@@ -32,7 +32,7 @@ export default function Home() {
   const [registerForm, setRegisterForm] = useState({
     amount: '10000',
     projectId: 'GS-15234',
-    expiryDate: '',
+    expiryDate: '2025-12-31',
   });
 
   const [verifyForm, setVerifyForm] = useState({
@@ -76,6 +76,10 @@ export default function Home() {
   const [creditData, setCreditData] = useState<any>(null);
   const [batchData, setBatchData] = useState<any>(null);
   const [tokenData, setTokenData] = useState<any>(null);
+
+  // Gallery states
+  const [galleryNFTs, setGalleryNFTs] = useState<any[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
 
   // Set client-side flag to prevent hydration mismatch
   useEffect(() => {
@@ -461,6 +465,64 @@ export default function Home() {
     }
   };
 
+  // Load gallery NFTs
+  const loadGalleryNFTs = async () => {
+    if (!connected) return;
+    
+    try {
+      setGalleryLoading(true);
+      const { signer } = await getWeb3(connectedWallet || undefined);
+      const { batchNFT } = getContracts(signer);
+      
+      const nextBatchId = await batchNFT.nextBatchId();
+      const nfts = [];
+      
+      // Load existing BatchNFTs (up to next batch ID)
+      for (let i = 1; i < Number(nextBatchId); i++) {
+        try {
+          const batch = await batchNFT.getBatchMetadata(i);
+          
+          // Try to get tokenURI
+          let tokenURI = 'Not available';
+          try {
+            tokenURI = await batchNFT.tokenURI(i);
+          } catch (uriError) {
+            console.log(`TokenURI not available for batch ${i}`);
+          }
+          
+          nfts.push({
+            batchId: i,
+            projectId: batch.projectId,
+            totalCredits: ethers.formatUnits(batch.totalCredits, 18),
+            issuedCredits: ethers.formatUnits(batch.issuedCredits, 18),
+            retiredCredits: ethers.formatUnits(batch.retiredCredits, 18),
+            projectTokenAddress: batch.projectTokenAddress,
+            creditId: batch.creditId.toString(),
+            isActive: batch.isActive,
+            createdAt: new Date(Number(batch.createdAt) * 1000).toLocaleString(),
+            projectOwner: batch.projectOwner,
+            tokenURI
+          });
+        } catch (error) {
+          console.log(`Batch ${i} doesn't exist or failed to load`);
+        }
+      }
+      
+      setGalleryNFTs(nfts);
+    } catch (error) {
+      console.error('Failed to load gallery NFTs:', error);
+    } finally {
+      setGalleryLoading(false);
+    }
+  };
+
+  // Load gallery when wallet connects
+  useEffect(() => {
+    if (connected) {
+      loadGalleryNFTs();
+    }
+  }, [connected]);
+
   const tabs = [
     { id: 'overview', label: '📋 Overview', icon: '📋' },
     { id: 'register', label: '📝 Register Credit', icon: '📝' },
@@ -493,10 +555,13 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            🌱 Carbon Credit BatchNFT System
+            🌱 OneTon: Verified Carbon Credit NFTs
           </h1>
-          <p className="text-gray-600 text-lg mb-6">
-            Verified by Chainlink Functions | Tokenized with BatchNFTs | Powered by ProjectTokens
+          <p className="text-gray-600 text-lg mb-2">
+            Real-time carbon credit verification using Chainlink Functions
+          </p>
+          <p className="text-blue-600 font-medium mb-6">
+            🎯 Hackathon Demo: Dynamic NFT Metadata | Automated ERC-20 Tokens | Gold Standard API Integration
           </p>
           
           {/* Wallet Connection */}
@@ -609,6 +674,128 @@ export default function Home() {
           </div>
         </div>
 
+        {/* BatchNFT Gallery */}
+        {connected && (
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                🎨 BatchNFT Gallery
+              </h2>
+              <button
+                onClick={loadGalleryNFTs}
+                disabled={galleryLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50"
+              >
+                {galleryLoading ? '⏳ Loading...' : '🔄 Refresh'}
+              </button>
+            </div>
+            
+            {galleryLoading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                <p className="text-gray-600">Loading BatchNFTs...</p>
+              </div>
+            ) : galleryNFTs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {galleryNFTs.map((nft) => (
+                  <div key={nft.batchId} className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                        #{nft.batchId}
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        nft.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {nft.isActive ? '✅ Active' : '❌ Inactive'}
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                      Project {nft.projectId}
+                    </h3>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Credits:</span>
+                        <span className="font-medium">{nft.totalCredits} tonnes</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Issued:</span>
+                        <span className="font-medium text-green-600">{nft.issuedCredits}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Retired:</span>
+                        <span className="font-medium text-red-600">{nft.retiredCredits}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Available:</span>
+                        <span className="font-medium text-blue-600">
+                          {(parseFloat(nft.totalCredits) - parseFloat(nft.retiredCredits)).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 mb-2">ProjectToken:</p>
+                      <p className="text-xs font-mono text-gray-700 break-all bg-gray-100 p-2 rounded">
+                        {nft.projectTokenAddress}
+                      </p>
+                    </div>
+                    
+                    <div className="mt-4 flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setViewBatchForm({batchId: nft.batchId.toString()});
+                          setActiveTab('view');
+                        }}
+                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          setViewTokenForm({
+                            tokenAddress: nft.projectTokenAddress,
+                            userAddress: walletAddress
+                          });
+                          setActiveTab('view');
+                        }}
+                        className="flex-1 bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700"
+                      >
+                        Check Token
+                      </button>
+                    </div>
+                    
+                    <p className="text-xs text-gray-500 mt-3">
+                      Created: {nft.createdAt}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-xl">
+                <div className="text-6xl mb-4">🎨</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No BatchNFTs Found</h3>
+                <p className="text-gray-600 mb-4">Start by registering and verifying carbon credits, then mint your first BatchNFT!</p>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={() => setActiveTab('register')}
+                    className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+                  >
+                    Register Credit
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('mint-batch')}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                  >
+                    Mint BatchNFT
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Interactive Demo Sections */}
         {connected && (
           <div className="space-y-8">
@@ -666,7 +853,37 @@ export default function Home() {
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
-                    <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                    <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-xl mb-6">
+                      <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+                        🌟 Hackathon Demo: Carbon Credit Verification System
+                      </h3>
+                      <p className="text-gray-700 mb-4">
+                        This system demonstrates real-time carbon credit verification using Chainlink Functions, 
+                        dynamic NFT metadata, and automated ERC-20 token generation.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white p-4 rounded-lg">
+                          <h4 className="font-semibold text-green-800 mb-2">📊 Available Demo Projects</h4>
+                          <ul className="text-sm text-gray-700 space-y-1">
+                            <li>• <strong>GS-15234:</strong> Forest Conservation Project</li>
+                            <li>• <strong>GS-15235:</strong> Renewable Energy Initiative</li>
+                          </ul>
+                          <p className="text-xs text-gray-600 mt-2">
+                            These projects are pre-configured in our mockup Gold Standard API
+                          </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg">
+                          <h4 className="font-semibold text-blue-800 mb-2">🔗 Chainlink Integration</h4>
+                          <ul className="text-sm text-gray-700 space-y-1">
+                            <li>• Real-time API verification</li>
+                            <li>• Dynamic NFT metadata updates</li>
+                            <li>• Decentralized oracle network</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-xl font-semibold text-gray-800 mb-4">
                       🔄 Interactive Demo Workflow
                     </h3>
                     <div className="space-y-4">
@@ -796,6 +1013,14 @@ export default function Home() {
                           <li>• Sets up verification tracking</li>
                           <li>• Required before Chainlink verification</li>
                         </ul>
+                        
+                        <div className="mt-4 p-3 bg-blue-100 rounded">
+                          <h5 className="font-medium text-blue-800 mb-1">🎯 Demo Instructions:</h5>
+                          <p className="text-blue-700 text-sm">
+                            Use project IDs <strong>GS-15234</strong> or <strong>GS-15235</strong> for the demo. 
+                            These are pre-configured in our mockup Gold Standard API.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
