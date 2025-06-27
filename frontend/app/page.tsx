@@ -968,7 +968,7 @@ export default function Home() {
                     } disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors min-w-[150px]`}
                   >
                     <img 
-                      src="https://avatars.githubusercontent.com/u/89490983?s=200&v=4" 
+                      src="https://cryptologos.cc/logos/avalanche-avax-logo.svg" 
                       alt="Core Wallet" 
                       className="w-6 h-6 rounded"
                       onError={(e) => {
@@ -995,7 +995,7 @@ export default function Home() {
                     } disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors min-w-[150px]`}
                   >
                     <img 
-                      src="https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg" 
+                      src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/metamask-icon.svg" 
                       alt="MetaMask" 
                       className="w-6 h-6"
                       onError={(e) => {
