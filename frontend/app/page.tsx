@@ -80,6 +80,11 @@ export default function Home() {
   // Gallery states
   const [galleryNFTs, setGalleryNFTs] = useState<any[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
+  
+  // Project details states
+  const [projectDetails, setProjectDetails] = useState<any>(null);
+  const [projectDetailsLoading, setProjectDetailsLoading] = useState(false);
+  const [showProjectModal, setShowProjectModal] = useState(false);
 
   // Set client-side flag to prevent hydration mismatch
   useEffect(() => {
@@ -465,6 +470,72 @@ export default function Home() {
     }
   };
 
+  // Direct token balance check with specific parameters (for gallery buttons)
+  const checkTokenBalanceWithParams = async (tokenAddress: string, userAddress: string) => {
+    try {
+      setTxLoading('Check Token Balance');
+      
+      // Validate inputs
+      if (!tokenAddress || !ethers.isAddress(tokenAddress)) {
+        setTokenData(null);
+        setTxResult(`❌ Invalid token contract address`);
+        return;
+      }
+      
+      if (!userAddress || !ethers.isAddress(userAddress)) {
+        setTokenData(null);
+        setTxResult(`❌ Invalid user address`);
+        return;
+      }
+      
+      const { signer } = await getWeb3(connectedWallet || undefined);
+      const projectToken = getProjectTokenContract(tokenAddress, signer);
+      
+      const name = await projectToken.name();
+      const symbol = await projectToken.symbol();
+      const totalSupply = await projectToken.totalSupply();
+      const balance = await projectToken.balanceOf(userAddress);
+      const totalRetired = await projectToken.totalRetired();
+      const batchId = await projectToken.batchId();
+      
+      const tokenDataResult = {
+        tokenAddress,
+        userAddress,
+        name,
+        symbol,
+        totalSupply: ethers.formatUnits(totalSupply, 18),
+        balance: ethers.formatUnits(balance, 18),
+        totalRetired: ethers.formatUnits(totalRetired, 18),
+        batchId: batchId.toString()
+      };
+
+      // Update form state and token data
+      setViewTokenForm({
+        tokenAddress,
+        userAddress
+      });
+      setTokenData(tokenDataResult);
+      
+      setTxResult(`✅ Token balance retrieved successfully!`);
+    } catch (error: any) {
+      console.error('Check token balance failed:', error);
+      setTokenData(null);
+      
+      // Better error handling
+      if (error.code === 'CALL_EXCEPTION') {
+        setTxResult(`❌ Invalid token contract address or contract does not exist`);
+      } else if (error.message.includes('network')) {
+        setTxResult(`❌ Network error: Please check your connection and try again`);
+      } else if (error.message.includes('missing revert data')) {
+        setTxResult(`❌ Contract at ${tokenAddress} is not a valid ProjectToken`);
+      } else {
+        setTxResult(`❌ Failed to get token balance: ${error.reason || error.message}`);
+      }
+    } finally {
+      setTxLoading('');
+    }
+  };
+
   // Load gallery NFTs
   const loadGalleryNFTs = async () => {
     if (!connected) return;
@@ -522,6 +593,64 @@ export default function Home() {
       loadGalleryNFTs();
     }
   }, [connected]);
+
+  // Fetch project details from Gold Standard API
+  const fetchProjectDetails = async (projectId: string) => {
+    try {
+      setProjectDetailsLoading(true);
+      
+      // Fetch project details
+      const projectResponse = await fetch(`https://goldstandard-mockup-api.vercel.app/api/v2/projects/${projectId}`, {
+        headers: {
+          'X-API-Key': 'chainlink_demo_key'
+        }
+      });
+      
+      if (!projectResponse.ok) {
+        throw new Error(`Failed to fetch project details: ${projectResponse.status}`);
+      }
+      
+      const projectData = await projectResponse.json();
+      
+      // Fetch carbon credits data
+      const creditsResponse = await fetch(`https://goldstandard-mockup-api.vercel.app/api/v2/projects/${projectId}/carbon-credits`, {
+        headers: {
+          'X-API-Key': 'chainlink_demo_key'
+        }
+      });
+      
+      let creditsData = null;
+      if (creditsResponse.ok) {
+        creditsData = await creditsResponse.json();
+      }
+      
+      // Fetch impact report
+      const impactResponse = await fetch(`https://goldstandard-mockup-api.vercel.app/api/v2/projects/${projectId}/impact-report`, {
+        headers: {
+          'X-API-Key': 'chainlink_demo_key'
+        }
+      });
+      
+      let impactData = null;
+      if (impactResponse.ok) {
+        impactData = await impactResponse.json();
+      }
+      
+      setProjectDetails({
+        project: projectData,
+        credits: creditsData,
+        impact: impactData
+      });
+      
+      setShowProjectModal(true);
+      
+    } catch (error: any) {
+      console.error('Failed to fetch project details:', error);
+      setTxResult(`❌ Failed to fetch project details: ${error.message || 'Unknown error'}`);
+    } finally {
+      setProjectDetailsLoading(false);
+    }
+  };
 
   const tabs = [
     { id: 'overview', label: '📋 Overview', icon: '📋' },
@@ -744,25 +873,23 @@ export default function Home() {
                     
                     <div className="mt-4 flex space-x-2">
                       <button
-                        onClick={() => {
-                          setViewBatchForm({batchId: nft.batchId.toString()});
-                          setActiveTab('view');
-                        }}
-                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700"
+                        onClick={() => fetchProjectDetails(nft.projectId)}
+                        disabled={projectDetailsLoading}
+                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
                       >
-                        View Details
+                        {projectDetailsLoading ? '⏳' : '📊 View Details'}
                       </button>
                       <button
-                        onClick={() => {
-                          setViewTokenForm({
-                            tokenAddress: nft.projectTokenAddress,
-                            userAddress: walletAddress
-                          });
+                        onClick={async () => {
+                          // Navigate to view tab first
                           setActiveTab('view');
+                          // Use the direct function with parameters
+                          await checkTokenBalanceWithParams(nft.projectTokenAddress, walletAddress);
                         }}
-                        className="flex-1 bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700"
+                        disabled={!!txLoading}
+                        className="flex-1 bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-50"
                       >
-                        Check Token
+                        {txLoading === 'Check Token Balance' ? '⏳' : '🪙 Check Token'}
                       </button>
                     </div>
                     
@@ -1500,6 +1627,182 @@ export default function Home() {
                     </ul>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Project Details Modal */}
+        {showProjectModal && projectDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6 rounded-t-xl">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">
+                      🌱 {projectDetails.project?.data?.name || 'Project Details'}
+                    </h2>
+                    <p className="text-green-100">
+                      ID: {projectDetails.project?.data?.gsId}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowProjectModal(false)}
+                    className="text-white hover:text-gray-300 text-2xl font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Project Information */}
+                {projectDetails.project?.data && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                         <div className="bg-blue-50 p-4 rounded-lg">
+                       <h3 className="text-lg font-semibold text-blue-800 mb-3">📋 Project Information</h3>
+                       <div className="space-y-2 text-sm">
+                         <div>
+                           <span className="font-medium text-gray-700">Location:</span>
+                           <span className="ml-2">{projectDetails.project.data.location?.country}, {projectDetails.project.data.location?.region}</span>
+                         </div>
+                         <div>
+                           <span className="font-medium text-gray-700">Type:</span>
+                           <span className="ml-2">{projectDetails.project.data.type}</span>
+                         </div>
+                         <div>
+                           <span className="font-medium text-gray-700">Status:</span>
+                           <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                             projectDetails.project.data.status === 'ACTIVE' 
+                               ? 'bg-green-100 text-green-800' 
+                               : 'bg-gray-100 text-gray-600'
+                           }`}>
+                             {projectDetails.project.data.status}
+                           </span>
+                         </div>
+                         <div>
+                           <span className="font-medium text-gray-700">Developer:</span>
+                           <span className="ml-2">{projectDetails.project.data.developer}</span>
+                         </div>
+                         <div>
+                           <span className="font-medium text-gray-700">Registry Date:</span>
+                           <span className="ml-2">{new Date(projectDetails.project.data.registrationDate).toLocaleDateString()}</span>
+                         </div>
+                       </div>
+                     </div>
+
+                                         <div className="bg-green-50 p-4 rounded-lg">
+                       <h3 className="text-lg font-semibold text-green-800 mb-3">🌍 Project Details</h3>
+                       <div className="space-y-2 text-sm">
+                         <div>
+                           <span className="font-medium text-gray-700">Methodology:</span>
+                           <span className="ml-2">{projectDetails.project.data.methodology}</span>
+                         </div>
+                         <div>
+                           <span className="font-medium text-gray-700">Current Phase:</span>
+                           <span className="ml-2">{projectDetails.project.data.currentPhase}</span>
+                         </div>
+                         <div>
+                           <span className="font-medium text-gray-700">Expected Credits:</span>
+                           <span className="ml-2">{projectDetails.project.data.totalExpectedCredits?.toLocaleString()}</span>
+                         </div>
+                         <div className="mt-3">
+                           <p className="text-gray-700">{projectDetails.project.data.description}</p>
+                         </div>
+                       </div>
+                     </div>
+                  </div>
+                )}
+
+                {/* Carbon Credits Information */}
+                {projectDetails.credits?.data && (
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-orange-800 mb-3">💰 Carbon Credits Status</h3>
+                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                       <div className="text-center">
+                         <div className="text-2xl font-bold text-green-600">
+                           {projectDetails.credits.data.availableForSale?.toLocaleString()}
+                         </div>
+                         <div className="text-sm text-gray-600">Available for Sale</div>
+                       </div>
+                       <div className="text-center">
+                         <div className="text-2xl font-bold text-blue-600">
+                           {projectDetails.credits.data.totalIssued?.toLocaleString()}
+                         </div>
+                         <div className="text-sm text-gray-600">Total Issued</div>
+                       </div>
+                       <div className="text-center">
+                         <div className="text-2xl font-bold text-red-600">
+                           {projectDetails.credits.data.totalRetired?.toLocaleString()}
+                         </div>
+                         <div className="text-sm text-gray-600">Total Retired</div>
+                       </div>
+                       <div className="text-center">
+                         <div className="text-2xl font-bold text-purple-600">
+                           ${projectDetails.credits.data.pricePerCredit}
+                         </div>
+                         <div className="text-sm text-gray-600">Price per Credit</div>
+                       </div>
+                     </div>
+                     <div className="mt-4 text-sm text-gray-700">
+                       <p><strong>Vintage Year:</strong> {projectDetails.credits.data.vintageYear}</p>
+                       <p><strong>Certification:</strong> {projectDetails.credits.data.certificationBody}</p>
+                     </div>
+                    <div className="mt-4 text-xs text-gray-500">
+                      Last updated: {projectDetails.credits.timestamp}
+                    </div>
+                  </div>
+                )}
+
+                {/* Impact Report */}
+                {projectDetails.impact?.data && (
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-purple-800 mb-3">📊 Impact Report</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                             <div>
+                         <h4 className="font-medium text-purple-700 mb-2">🌳 Environmental Impact</h4>
+                         <div className="space-y-1 text-sm">
+                           <div>CO2 Reduced: <span className="font-medium">{projectDetails.impact.data.environmentalImpact?.co2Reduced?.toLocaleString()} {projectDetails.impact.data.environmentalImpact?.unit}</span></div>
+                           <div>Equivalent Trees: <span className="font-medium">{projectDetails.impact.data.environmentalImpact?.equivalentTrees?.toLocaleString()}</span></div>
+                           <div>Cars Off Road: <span className="font-medium">{projectDetails.impact.data.environmentalImpact?.equivalentCarsOff?.toLocaleString()}</span></div>
+                         </div>
+                       </div>
+                       <div>
+                         <h4 className="font-medium text-purple-700 mb-2">👥 Social Impact</h4>
+                         <div className="space-y-1 text-sm">
+                           <div>Beneficiaries: <span className="font-medium">{projectDetails.impact.data.socialImpact?.beneficiaries?.toLocaleString()}</span></div>
+                           <div>Jobs Created: <span className="font-medium">{projectDetails.impact.data.socialImpact?.jobsCreated}</span></div>
+                           <div>Households Impacted: <span className="font-medium">{projectDetails.impact.data.socialImpact?.householdsImpacted?.toLocaleString()}</span></div>
+                           <div>Women Employed: <span className="font-medium">{projectDetails.impact.data.socialImpact?.womenEmployed}</span></div>
+                         </div>
+                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* API Integration Notice */}
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">🔗</span>
+                    <div>
+                      <h4 className="font-medium text-gray-800">Gold Standard API Integration</h4>
+                      <p className="text-sm text-gray-600">
+                        This data is fetched in real-time from the Gold Standard mockup API using Chainlink demo credentials.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-end">
+                <button
+                  onClick={() => setShowProjectModal(false)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
