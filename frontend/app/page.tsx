@@ -63,9 +63,7 @@ export default function Home() {
     projectId: 'GS-15234',
   });
 
-  const [viewBatchForm, setViewBatchForm] = useState({
-    batchId: '1',
-  });
+  // viewBatchForm removed - BatchNFT data now included in unified project queries
 
   const [viewTokenForm, setViewTokenForm] = useState({
     tokenAddress: '',
@@ -430,11 +428,11 @@ export default function Home() {
   // View Data functions
   const checkCreditStatus = async () => {
     try {
-      setTxLoading('Check Credit Status');
+      setTxLoading('Check Project Info');
       const { signer } = await getWeb3(connectedWallet || undefined);
-      const { oracle } = getContracts(signer);
+      const { oracle, batchNFT } = getContracts(signer);
       
-      // 🎯 Find Credit ID from Project ID (same logic as verification)
+      // 🎯 Find Credit ID from Project ID
       const nextCreditId = await oracle.nextCreditId();
       let foundCreditId = null;
       
@@ -452,13 +450,15 @@ export default function Home() {
       
       if (!foundCreditId) {
         setCreditData(null);
+        setBatchData(null);
         setTxResult(`❌ No registered credit found for project ${viewCreditForm.projectId}.\n\n💡 Please register the project first or check available project IDs in the gallery.`);
         return;
       }
       
+      // Get credit data
       const credit = await oracle.getCarbonCredit(foundCreditId);
       
-      // Also get verification request if exists
+      // Get verification request if exists
       let verificationData = null;
       try {
         const requestId = await oracle.creditToRequest(foundCreditId);
@@ -469,6 +469,43 @@ export default function Home() {
         console.log('No verification request found for this credit');
       }
       
+      // 🎨 Also find and get BatchNFT data for this project
+      let batchData = null;
+      const nextBatchId = await batchNFT.nextBatchId();
+      
+      for (let i = 1; i < Number(nextBatchId); i++) {
+        try {
+          const batch = await batchNFT.getBatchMetadata(i);
+          if (batch.projectId === viewCreditForm.projectId && batch.isActive) {
+            // Found the BatchNFT for this project
+            let tokenURI = 'Not available';
+            try {
+              tokenURI = await batchNFT.tokenURI(i);
+            } catch (uriError) {
+              console.log('TokenURI not available for this batch');
+            }
+            
+            batchData = {
+              batchId: i,
+              projectId: batch.projectId,
+              totalCredits: ethers.formatUnits(batch.totalCredits, 18),
+              issuedCredits: ethers.formatUnits(batch.issuedCredits, 18),
+              retiredCredits: ethers.formatUnits(batch.retiredCredits, 18),
+              projectTokenAddress: batch.projectTokenAddress,
+              creditId: batch.creditId.toString(),
+              isActive: batch.isActive,
+              createdAt: new Date(Number(batch.createdAt) * 1000).toLocaleString(),
+              projectOwner: batch.projectOwner,
+              tokenURI
+            };
+            break;
+          }
+        } catch (error) {
+          // Batch doesn't exist or is inactive, skip
+        }
+      }
+      
+      // Set all the data
       setCreditData({
         creditId: foundCreditId,
         amount: ethers.formatUnits(credit.amount, 18),
@@ -486,10 +523,17 @@ export default function Home() {
         } : null
       });
       
-      setTxResult(`✅ Credit status retrieved successfully! Found Credit ID: ${foundCreditId}`);
+      setBatchData(batchData);
+      
+      const resultMessage = batchData 
+        ? `✅ Complete project info retrieved! Credit ID: ${foundCreditId}, BatchNFT ID: ${batchData.batchId}`
+        : `✅ Credit found (ID: ${foundCreditId}) but no BatchNFT minted yet for this project`;
+      
+      setTxResult(resultMessage);
     } catch (error: any) {
-      console.error('Check credit status failed:', error);
+      console.error('Check project info failed:', error);
       setCreditData(null);
+      setBatchData(null);
       
       // Better error handling
       if (error.code === 'CALL_EXCEPTION') {
@@ -497,72 +541,14 @@ export default function Home() {
       } else if (error.message.includes('network')) {
         setTxResult(`❌ Network error: Please check your connection and try again`);
       } else {
-        setTxResult(`❌ Failed to get credit status: ${error.reason || error.message}`);
+        setTxResult(`❌ Failed to get project info: ${error.reason || error.message}`);
       }
     } finally {
       setTxLoading('');
     }
   };
 
-  const viewBatchNFT = async () => {
-    try {
-      setTxLoading('View BatchNFT');
-      const { signer } = await getWeb3(connectedWallet || undefined);
-      const { batchNFT } = getContracts(signer);
-      
-      const batchId = parseInt(viewBatchForm.batchId);
-      
-      // Check if batch ID is valid (greater than 0 and less than nextBatchId)
-      const nextBatchId = await batchNFT.nextBatchId();
-      if (batchId < 1 || batchId >= Number(nextBatchId)) {
-        setBatchData(null);
-        setTxResult(`❌ BatchNFT ID ${batchId} does not exist. Valid range: 1 to ${Number(nextBatchId) - 1}`);
-        return;
-      }
-      
-      const batch = await batchNFT.getBatchMetadata(batchId);
-      
-      // Try to get tokenURI, but handle gracefully if it fails
-      let tokenURI = 'Not available';
-      try {
-        tokenURI = await batchNFT.tokenURI(batchId);
-      } catch (uriError) {
-        console.log('TokenURI not available for this batch');
-      }
-      
-      setBatchData({
-        batchId,
-        projectId: batch.projectId,
-        totalCredits: ethers.formatUnits(batch.totalCredits, 18),
-        issuedCredits: ethers.formatUnits(batch.issuedCredits, 18),
-        retiredCredits: ethers.formatUnits(batch.retiredCredits, 18),
-        projectTokenAddress: batch.projectTokenAddress,
-        creditId: batch.creditId.toString(),
-        isActive: batch.isActive,
-        createdAt: new Date(Number(batch.createdAt) * 1000).toLocaleString(),
-        projectOwner: batch.projectOwner,
-        tokenURI
-      });
-      
-      setTxResult(`✅ BatchNFT data retrieved successfully!`);
-    } catch (error: any) {
-      console.error('View BatchNFT failed:', error);
-      setBatchData(null);
-      
-      // Better error handling
-      if (error.code === 'CALL_EXCEPTION') {
-        setTxResult(`❌ BatchNFT ID ${viewBatchForm.batchId} does not exist. Please check the batch ID and try again.`);
-      } else if (error.message.includes('network')) {
-        setTxResult(`❌ Network error: Please check your connection and try again`);
-      } else if (error.message.includes('missing revert data')) {
-        setTxResult(`❌ BatchNFT ID ${viewBatchForm.batchId} has not been minted yet`);
-      } else {
-        setTxResult(`❌ Failed to get BatchNFT data: ${error.reason || error.message}`);
-      }
-    } finally {
-      setTxLoading('');
-    }
-  };
+  // viewBatchNFT function removed - now integrated into checkCreditStatus for unified project queries
 
   const checkTokenBalance = async () => {
     try {
@@ -1843,8 +1829,8 @@ export default function Home() {
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <div className="bg-orange-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-orange-800 mb-2">🔍 Check Credit Status</h4>
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <h4 className="font-semibold text-blue-800 mb-2">🎯 Complete Project Information</h4>
                           <div className="space-y-2">
                             <input
                               type="text"
@@ -1856,38 +1842,17 @@ export default function Home() {
                             <button 
                               onClick={checkCreditStatus}
                               disabled={!!txLoading}
-                              className="w-full bg-orange-600 text-white px-4 py-2 rounded-md text-sm hover:bg-orange-700 disabled:opacity-50"
+                              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
                             >
-                              {txLoading === 'Check Credit Status' ? '⏳ Searching...' : '🔍 Check Project Status'}
+                              {txLoading === 'Check Project Info' ? '⏳ Loading All Data...' : '🎯 Get Complete Project Info'}
                             </button>
                           </div>
-                          <p className="text-xs text-orange-700 mt-2">
-                            💡 Enter Gold Standard Project ID (system finds Credit ID automatically)
+                          <p className="text-xs text-blue-700 mt-2">
+                            💡 Shows Credit Status + BatchNFT + Verification Data for the project
                           </p>
                         </div>
 
-                        <div className="bg-green-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-green-800 mb-2">🎨 View BatchNFT</h4>
-                          <div className="space-y-2">
-                            <input
-                              type="number"
-                              value={viewBatchForm.batchId}
-                              onChange={(e) => setViewBatchForm({...viewBatchForm, batchId: e.target.value})}
-                              placeholder="BatchNFT ID (1, 2, 3...)"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                            />
-                            <button 
-                              onClick={viewBatchNFT}
-                              disabled={!!txLoading}
-                              className="w-full bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
-                            >
-                              {txLoading === 'View BatchNFT' ? '⏳ Loading...' : '🎨 View BatchNFT Details'}
-                            </button>
-                          </div>
-                          <p className="text-xs text-green-700 mt-2">
-                            💡 Check the gallery above for available BatchNFT IDs
-                          </p>
-                        </div>
+
 
                         <div className="bg-purple-50 p-4 rounded-lg">
                           <h4 className="font-semibold text-purple-800 mb-2">🪙 Check Token Balance</h4>
@@ -1957,43 +1922,89 @@ export default function Home() {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="font-semibold text-gray-800 mb-2">Query Results:</h4>
                         
-                        {/* Credit Data Display */}
+                        {/* Combined Project Data Display */}
                         {creditData && (
-                          <div className="mb-4 p-3 bg-orange-100 rounded">
-                            <h5 className="font-medium text-orange-800 mb-2">📊 Credit #{creditData.creditId}</h5>
-                            <div className="text-sm text-orange-700 space-y-1">
-                              <p><strong>Amount:</strong> {creditData.amount} tonnes CO2</p>
-                              <p><strong>Project:</strong> {creditData.projectId}</p>
-                              <p><strong>Status:</strong> {creditData.isVerified ? '✅ Verified' : '⏳ Pending'}</p>
-                              <p><strong>Owner:</strong> {creditData.owner}</p>
-                              <p><strong>Created:</strong> {creditData.createdAt}</p>
-                              <p><strong>Verified:</strong> {creditData.verifiedAt}</p>
+                          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h5 className="font-medium text-blue-800 mb-3 flex items-center">
+                              🎯 Project {creditData.projectId} - Complete Information
+                              {creditData.isVerified && <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded">✅ Verified</span>}
+                            </h5>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Credit Information */}
+                              <div className="bg-white p-3 rounded border">
+                                <h6 className="font-medium text-gray-700 mb-2">📊 Credit Registration</h6>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                  <p><strong>Credit ID:</strong> #{creditData.creditId}</p>
+                                  <p><strong>Amount:</strong> {creditData.amount} tonnes CO2</p>
+                                  <p><strong>Owner:</strong> {creditData.owner}</p>
+                                  <p><strong>Created:</strong> {creditData.createdAt}</p>
+                                  <p><strong>Verified:</strong> {creditData.verifiedAt}</p>
+                                  <p><strong>Expires:</strong> {creditData.expiryDate}</p>
+                                </div>
+                              </div>
+                              
+                              {/* Chainlink Verification Data */}
                               {creditData.verification && (
-                                <div className="mt-2 p-2 bg-orange-200 rounded">
-                                  <p className="font-medium">Chainlink Data:</p>
-                                  <p>GS ID: {creditData.verification.gsId}</p>
-                                  <p>Available: {creditData.verification.availableForSale}</p>
-                                  <p>Status: {creditData.verification.verificationStatus === 1 ? 'Verified' : creditData.verification.verificationStatus === 2 ? 'Failed' : 'Pending'}</p>
+                                <div className="bg-white p-3 rounded border">
+                                  <h6 className="font-medium text-gray-700 mb-2">🔗 Chainlink Verification</h6>
+                                  <div className="text-sm text-gray-600 space-y-1">
+                                    <p><strong>GS Project:</strong> {creditData.verification.gsId}</p>
+                                    <p><strong>Credits Available:</strong> {Number(creditData.verification.availableForSale).toLocaleString()}</p>
+                                    <p><strong>API Timestamp:</strong> {creditData.verification.timestamp}</p>
+                                    <p><strong>Status:</strong> 
+                                      <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                                        creditData.verification.verificationStatus === 1 ? 'bg-green-100 text-green-800' :
+                                        creditData.verification.verificationStatus === 2 ? 'bg-red-100 text-red-800' :
+                                        'bg-yellow-100 text-yellow-800'
+                                      }`}>
+                                        {creditData.verification.verificationStatus === 1 ? '✅ VERIFIED' :
+                                         creditData.verification.verificationStatus === 2 ? '❌ FAILED' : '⏳ PENDING'}
+                                      </span>
+                                    </p>
+                                  </div>
                                 </div>
                               )}
                             </div>
-                          </div>
-                        )}
-
-                        {/* Batch Data Display */}
-                        {batchData && (
-                          <div className="mb-4 p-3 bg-green-100 rounded">
-                            <h5 className="font-medium text-green-800 mb-2">🎨 BatchNFT #{batchData.batchId}</h5>
-                            <div className="text-sm text-green-700 space-y-1">
-                              <p><strong>Project:</strong> {batchData.projectId}</p>
-                              <p><strong>Total Credits:</strong> {batchData.totalCredits}</p>
-                              <p><strong>Issued:</strong> {batchData.issuedCredits}</p>
-                              <p><strong>Retired:</strong> {batchData.retiredCredits}</p>
-                              <p><strong>Token Address:</strong> {batchData.projectTokenAddress}</p>
-                              <p><strong>Credit ID:</strong> {batchData.creditId}</p>
-                              <p><strong>Active:</strong> {batchData.isActive ? 'Yes' : 'No'}</p>
-                              <p><strong>Created:</strong> {batchData.createdAt}</p>
-                            </div>
+                            
+                            {/* BatchNFT Information (if exists) */}
+                            {batchData && (
+                              <div className="mt-4 p-3 bg-green-50 rounded border border-green-200">
+                                <h6 className="font-medium text-green-800 mb-2">🎨 BatchNFT #{batchData.batchId}</h6>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                  <div>
+                                    <p className="text-gray-600">Total Credits</p>
+                                    <p className="font-medium text-green-700">{batchData.totalCredits}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-600">Issued</p>
+                                    <p className="font-medium text-blue-700">{batchData.issuedCredits}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-600">Retired</p>
+                                    <p className="font-medium text-red-700">{batchData.retiredCredits}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-600">Available</p>
+                                    <p className="font-medium text-purple-700">{(parseFloat(batchData.totalCredits) - parseFloat(batchData.issuedCredits)).toFixed(2)}</p>
+                                  </div>
+                                </div>
+                                <div className="mt-2 text-xs text-gray-600">
+                                  <p><strong>Token Contract:</strong> {batchData.projectTokenAddress}</p>
+                                  <p><strong>Created:</strong> {batchData.createdAt}</p>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* No BatchNFT Message */}
+                            {!batchData && (
+                              <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+                                <p className="text-yellow-800 text-sm">
+                                  ⚠️ <strong>No BatchNFT found:</strong> This project is registered but no BatchNFT has been minted yet. 
+                                  Use the "🎨 Mint BatchNFT" tab to create one.
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
 
