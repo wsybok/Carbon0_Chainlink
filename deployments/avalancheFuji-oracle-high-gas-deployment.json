@@ -1,0 +1,45 @@
+{
+  "network": "avalancheFuji",
+  "contractAddress": "0x8ff4DAD2703E8621e6Cf4A4b22211a29296C2294",
+  "chainlinkConfig": {
+    "router": "0xA9d587a00A31A52Ed70D6026794a8FC5E2F5dCb0",
+    "donId": "fun-avalanche-fuji-1",
+    "donIdBytes32": "0x66756e2d6176616c616e6368652d66756a692d31000000000000000000000000",
+    "gatewayUrls": [
+      "https://01.functions-gateway.testnet.chain.link/",
+      "https://02.functions-gateway.testnet.chain.link/"
+    ],
+    "explorerUrl": "https://testnet.snowtrace.io",
+    "linkToken": "0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846",
+    "linkPriceFeed": "0x79c91fd4F8b3DaBEe17d286EB11cEE4D83521775"
+  },
+  "functionsConfig": {
+    "subscriptionId": "15534",
+    "gasLimit": 300000,
+    "donId": "fun-avalanche-fuji-1",
+    "donIdBytes32": "0x66756e2d6176616c616e6368652d66756a692d31000000000000000000000000",
+    "optimizedForGas": true
+  },
+  "apiConfig": {
+    "baseUrl": "https://goldstandard-mockup-api.vercel.app",
+    "apiKey": "gs_test_key_12345",
+    "hardcoded": true
+  },
+  "goldStandardConfig": {
+    "apiBaseUrl": "https://goldstandard-mockup-api.vercel.app/",
+    "apiKey": "gs_test_key_12345",
+    "testProjects": [
+      "GS-15234",
+      "GS-15235",
+      "GS-15236"
+    ]
+  },
+  "deploymentTime": "2025-06-20T19:43:12.980Z",
+  "deployer": "0x5ee0b06730f5A48741AE74CD7E5B55E5Edb027e7",
+  "gasOptimizations": [
+    "Maximum gas limit (300,000)",
+    "Memory-optimized JavaScript",
+    "Compact response format",
+    "Efficient parsing"
+  ]
+}

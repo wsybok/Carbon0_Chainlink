@@ -1,0 +1,31 @@
+{
+  "network": "avalancheFuji",
+  "deploymentTime": "2025-06-21T05:28:57.607Z",
+  "deployer": "0x5ee0b06730f5A48741AE74CD7E5B55E5Edb027e7",
+  "contracts": {
+    "carbonVerificationOracle": {
+      "address": "0xc195a76987dd0E62407811dc21927C322a85e9eF",
+      "existing": true
+    },
+    "tokenFactory": {
+      "address": "0x0B6D191B449EBB814Eb0332490683a802947b2CA",
+      "transactionHash": "0x7d5b86e6359e734f413eb424efdd5bef1da40cb7b426ace813c02425f1ee68af"
+    },
+    "batchNFT": {
+      "address": "0x4134f7B9eCC847D8548176471A31D408959254f9",
+      "transactionHash": "0x0699844d5bda39e7972a3b3f0135f879420ccc1eaa06e28089a86aaf8706937e"
+    }
+  },
+  "systemConfiguration": {
+    "oracleIntegration": true,
+    "factoryAuthorization": true,
+    "deployerAsIssuer": true
+  },
+  "nextSteps": [
+    "1. Register carbon credits in CarbonVerificationOracle",
+    "2. Request verification for credits",
+    "3. Use mintBatchWithToken() to create batch NFTs with tokens",
+    "4. Mint project tokens to users",
+    "5. Users can retire tokens for carbon offsetting"
+  ]
+}
