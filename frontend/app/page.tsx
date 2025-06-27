@@ -1526,15 +1526,7 @@ export default function Home() {
                           <li>• ⏱️ <strong>Processing Time:</strong> 1-2 minutes for network consensus</li>
                         </ul>
                         
-                        <div className="mt-4 p-3 bg-green-100 rounded border border-green-300">
-                          <h5 className="font-medium text-green-800 mb-1">✅ Why This Proves Real Integration:</h5>
-                          <div className="text-green-700 text-xs space-y-1">
-                            <p>• <strong>Live Network:</strong> Uses Avalanche Fuji testnet</p>
-                            <p>• <strong>Real API:</strong> Fetches actual data from external endpoint</p>
-                            <p>• <strong>Decentralized:</strong> Multiple Chainlink nodes validate the result</p>
-                            <p>• <strong>Verifiable:</strong> All transactions visible on blockchain explorer</p>
-                          </div>
-                        </div>
+
                         
                         <div className="mt-4 p-3 bg-blue-100 rounded">
                           <h5 className="font-medium text-blue-800 mb-1">📈 Demo Projects with Live Data:</h5>
