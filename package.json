@@ -1,0 +1,57 @@
+{
+  "name": "carbon-verification-oracle",
+  "version": "1.0.0",
+  "description": "Carbon credit verification oracle using Chainlink Automation",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.js",
+    "deploy:fuji": "hardhat run scripts/deploy.js --network avalancheFuji",
+    "deploy:mumbai": "hardhat run scripts/deploy.js --network polygonMumbai",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:batch-nft": "hardhat run scripts/deploy-batch-nft-system.js --network avalancheFuji",
+    "test:oracle": "hardhat run scripts/test-oracle.js --network polygonMumbai",
+    "test:batch-nft": "hardhat run scripts/test-batch-nft-system.js --network avalancheFuji",
+    "setup:subscription": "hardhat run scripts/setup-subscription.js",
+    "setup:secrets": "node scripts/setup-secrets.js",
+    "secrets:set": "npx env-enc set",
+    "secrets:view": "npx env-enc view",
+    "node": "hardhat node",
+    "clean": "hardhat clean"
+  },
+  "keywords": [
+    "carbon",
+    "oracle",
+    "chainlink",
+    "automation",
+    "smart-contracts",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@chainlink/contracts": "^0.8.0",
+    "@chainlink/env-enc": "^1.0.5",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^1.0.0",
+    "@typechain/ethers-v6": "^0.4.0",
+    "@typechain/hardhat": "^8.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": ">=9.1.0",
+    "chai": "^4.2.0",
+    "ethers": "^6.4.0",
+    "hardhat": "^2.17.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.8.1",
+    "typechain": "^8.3.0",
+    "typescript": ">=4.5.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6",
+    "dotenv": "^16.3.1"
+  }
+}
