@@ -924,14 +924,14 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
             🌱 OneTon
           </h1>
-          <p className="text-gray-600 text-lg mb-2">
+          <p className="text-gray-600 text-lg font-bold mb-2">
             Turning real-world carbon impact into cross-chain digital assets
           </p>
-          <p className="text-blue-600 font-medium mb-6">
+          <p className="text-blue-600 font-medium mb-6 text-center">
             Chainlink Chromion Hackathon Demo
           </p>
           
