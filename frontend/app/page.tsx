@@ -91,6 +91,10 @@ export default function Home() {
   const [showRetirementModal, setShowRetirementModal] = useState(false);
   const [retirementHistory, setRetirementHistory] = useState<any[]>([]);
 
+  // Chainlink verification callback states
+  const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [isPollingVerification, setIsPollingVerification] = useState(false);
+
   // Set client-side flag to prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
@@ -256,6 +260,8 @@ export default function Home() {
   };
 
   const requestVerification = async () => {
+    setVerificationResult(null); // Clear previous result
+    
     await executeTransaction('Request Chainlink Verification', async () => {
       const { signer } = await getWeb3(connectedWallet || undefined);
       const { oracle } = getContracts(signer);
@@ -282,8 +288,65 @@ export default function Home() {
       
       const tx = await oracle.requestVerification(foundCreditId);
       await tx.wait();
+      
+      // 🔗 Start polling for Chainlink callback data
+      pollForVerificationResult(oracle, foundCreditId);
+      
       return tx;
     });
+  };
+
+  // 🔗 Poll for Chainlink Functions callback data
+  const pollForVerificationResult = async (oracle: any, creditId: number) => {
+    setIsPollingVerification(true);
+    const maxAttempts = 60; // Poll for up to 2 minutes (60 * 2 seconds)
+    let attempts = 0;
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        attempts++;
+        
+        // Get the request ID for this credit
+        const requestId = await oracle.creditToRequest(creditId);
+        if (requestId === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+          return; // No request found yet
+        }
+        
+        // Get verification request data
+        const verificationData = await oracle.getVerificationRequest(requestId);
+        
+        if (verificationData.fulfilled) {
+          // 🎉 Chainlink callback received!
+          setVerificationResult({
+            projectId: verifyForm.projectId,
+            creditId: creditId,
+            requestId: requestId,
+            gsId: verificationData.gsId,
+            availableForSale: verificationData.availableForSale.toString(),
+            timestamp: verificationData.timestamp,
+            verificationStatus: Number(verificationData.verificationStatus), // 0=pending, 1=verified, 2=failed
+            fulfilled: verificationData.fulfilled,
+            callbackTime: new Date().toLocaleString()
+          });
+          
+          clearInterval(pollInterval);
+          setIsPollingVerification(false);
+          
+          // Update the transaction result with callback data
+          const statusText = verificationData.verificationStatus === 1 ? '✅ VERIFIED' : 
+                           verificationData.verificationStatus === 2 ? '❌ FAILED' : '⏳ PENDING';
+          setTxResult(`🔗 Chainlink Functions completed! Status: ${statusText} | Credits Available: ${verificationData.availableForSale}`);
+        }
+        
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setIsPollingVerification(false);
+          setTxResult(`⏰ Verification timeout - callback may still be processing. Check "View Data" tab for updates.`);
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 2000); // Poll every 2 seconds
   };
 
   const mintBatchNFT = async () => {
@@ -1417,12 +1480,6 @@ export default function Home() {
                     <h3 className="text-2xl font-semibold text-gray-800 mb-4">
                       🔗 Live Chainlink Functions Verification
                     </h3>
-                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-blue-800 text-sm">
-                        ⚡ <strong>Real-Time API Verification:</strong> This triggers actual Chainlink Functions that query the live Gold Standard API 
-                        and return real project data. Not a mockup - genuine blockchain oracle integration!
-                      </p>
-                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
@@ -1476,6 +1533,73 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
+                    
+                    {/* 🔗 Chainlink Callback Data Display */}
+                    {(isPollingVerification || verificationResult) && (
+                      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                          🔗 Live Chainlink Functions Response
+                          {isPollingVerification && (
+                            <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full animate-pulse">
+                              ⏳ Waiting for callback...
+                            </span>
+                          )}
+                        </h4>
+                        
+                        {isPollingVerification && !verificationResult && (
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p>📡 <strong>Status:</strong> Chainlink DON processing request...</p>
+                            <p>🌐 <strong>API Target:</strong> goldstandard-mockup-api.vercel.app</p>
+                            <p>⏱️ <strong>Expected Time:</strong> 1-2 minutes for consensus</p>
+                            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                              <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {verificationResult && (
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="bg-white p-3 rounded border">
+                                <h5 className="font-medium text-gray-700 mb-2">📊 API Response Data</h5>
+                                <div className="text-sm space-y-1">
+                                  <p><strong>Project ID:</strong> {verificationResult.gsId}</p>
+                                  <p><strong>Credits Available:</strong> {Number(verificationResult.availableForSale).toLocaleString()}</p>
+                                  <p><strong>API Timestamp:</strong> {verificationResult.timestamp}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-white p-3 rounded border">
+                                <h5 className="font-medium text-gray-700 mb-2">⛓️ Blockchain Record</h5>
+                                <div className="text-sm space-y-1">
+                                  <p><strong>Request ID:</strong> 
+                                    <span className="font-mono text-xs ml-1">{verificationResult.requestId}</span>
+                                  </p>
+                                  <p><strong>Credit ID:</strong> {verificationResult.creditId}</p>
+                                  <p><strong>Status:</strong> 
+                                    <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                                      verificationResult.verificationStatus === 1 ? 'bg-green-100 text-green-800' :
+                                      verificationResult.verificationStatus === 2 ? 'bg-red-100 text-red-800' :
+                                      'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                      {verificationResult.verificationStatus === 1 ? '✅ VERIFIED' :
+                                       verificationResult.verificationStatus === 2 ? '❌ FAILED' : '⏳ PENDING'}
+                                    </span>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-green-50 p-3 rounded border border-green-200">
+                              <p className="text-green-800 text-sm">
+                                <strong>✅ Real Chainlink Functions Proof:</strong> This data was fetched live from the Gold Standard API 
+                                by the Chainlink Decentralized Oracle Network and stored on-chain at {verificationResult.callbackTime}.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
