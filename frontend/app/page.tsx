@@ -926,13 +926,10 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            🌱 OneTon: Verified Carbon Credit NFTs
+            OneTon: Turning real-world carbon impact into cross-chain digital assets.
           </h1>
-          <p className="text-gray-600 text-lg mb-2">
-            Real-time carbon credit verification using Chainlink Functions
-          </p>
           <p className="text-blue-600 font-medium mb-6">
-            🎯 Hackathon Demo: Dynamic NFT Metadata | Automated ERC-20 Tokens | Gold Standard API Integration
+            Chainlink Chromion Hackathon Demo
           </p>
           
           {/* Wallet Connection */}
