@@ -968,7 +968,7 @@ export default function Home() {
                     } disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors min-w-[150px]`}
                   >
                     <img 
-                      src="https://cryptologos.cc/logos/avalanche-avax-logo.svg" 
+                      src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/avalanche-avax-icon.svg" 
                       alt="Core Wallet" 
                       className="w-6 h-6 rounded"
                       onError={(e) => {
