@@ -66,6 +66,9 @@ export default function Home() {
   // Detect available wallets on component mount
   useEffect(() => {
     const detectWalletsAsync = async () => {
+      // Only run wallet detection on client side
+      if (typeof window === 'undefined') return;
+      
       // First try the standard detection
       let wallets = detectWallets();
       
@@ -87,8 +90,11 @@ export default function Home() {
       console.log('📱 Current wallets in state:', wallets.map(w => ({ name: w.name, type: w.type })));
     };
 
-    detectWalletsAsync();
-  }, []);
+    // Only run if client-side
+    if (isClient) {
+      detectWalletsAsync();
+    }
+  }, [isClient]);
 
   // Add global error handler for unhandled promise rejections
   useEffect(() => {
@@ -256,6 +262,22 @@ export default function Home() {
     { id: 'retire', label: '♻️ Retire Tokens', icon: '♻️' },
     { id: 'view', label: '👁️ View Data', icon: '👁️' },
   ];
+
+  // Show loading screen during hydration
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🌱</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Carbon Credit BatchNFT System</h1>
+          <p className="text-gray-600">Loading application...</p>
+          <div className="mt-4">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-8">
