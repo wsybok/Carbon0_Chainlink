@@ -926,8 +926,11 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            OneTon: Turning real-world carbon impact into cross-chain digital assets.
+            🌱 OneTon
           </h1>
+          <p className="text-gray-600 text-lg mb-2">
+            Turning real-world carbon impact into cross-chain digital assets
+          </p>
           <p className="text-blue-600 font-medium mb-6">
             Chainlink Chromion Hackathon Demo
           </p>
