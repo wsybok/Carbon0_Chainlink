@@ -162,6 +162,20 @@ export default function Home() {
     try {
       setLoading(true);
       
+      // Check if wallet is installed
+      const walletInstalled = availableWallets.some(w => w.type === walletType);
+      
+      if (!walletInstalled) {
+        // Redirect to wallet installation page
+        const installUrl = walletType === WalletType.CORE 
+          ? 'https://core.app/' 
+          : 'https://metamask.io/';
+        
+        window.open(installUrl, '_blank');
+        setLoading(false);
+        return;
+      }
+      
       const { address, walletName } = await connectWallet(walletType);
       
       // Switch to Avalanche Fuji network
@@ -172,13 +186,13 @@ export default function Home() {
       }
       
       setWalletAddress(address);
-          setConnected(true);
-    setConnectedWallet(walletType);
-    
-    // Pre-fill recipient fields with connected wallet
-    setMintBatchForm(prev => ({ ...prev, recipient: address }));
-    setMintTokenForm(prev => ({ ...prev, recipient: address }));
-    setViewTokenForm(prev => ({ ...prev, userAddress: address }));
+      setConnected(true);
+      setConnectedWallet(walletType);
+      
+      // Pre-fill recipient fields with connected wallet
+      setMintBatchForm(prev => ({ ...prev, recipient: address }));
+      setMintTokenForm(prev => ({ ...prev, recipient: address }));
+      setViewTokenForm(prev => ({ ...prev, userAddress: address }));
     } catch (error: any) {
       console.error('Error connecting wallet:', error);
       alert(`Failed to connect ${walletType}: ${error.message}`);
@@ -941,55 +955,72 @@ export default function Home() {
             
             {!connected ? (
               <div>
-                {availableWallets.length > 0 ? (
-                  <div>
-                    <p className="text-gray-600 mb-4">Choose your wallet to connect:</p>
-                    <div className="flex flex-wrap gap-4 justify-center">
-                      {availableWallets.map((wallet) => (
-                        <button
-                          key={wallet.type}
-                          onClick={() => handleWalletConnect(wallet.type)}
-                          disabled={loading}
-                          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors min-w-[150px]"
-                        >
-                          <span className="text-xl">{wallet.icon}</span>
-                          <span>{loading ? 'Connecting...' : wallet.name}</span>
-                        </button>
-                      ))}
-                    </div>
+                <p className="text-gray-600 mb-4">Choose your wallet to connect:</p>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  {/* Core Wallet Button - Always Show */}
+                  <button
+                    onClick={() => handleWalletConnect(WalletType.CORE)}
+                    disabled={loading}
+                    className={`flex items-center gap-3 ${
+                      availableWallets.some(w => w.type === WalletType.CORE)
+                        ? 'bg-orange-500 hover:bg-orange-600' 
+                        : 'bg-gray-400 hover:bg-gray-500'
+                    } disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors min-w-[150px]`}
+                  >
+                    <img 
+                      src="https://avatars.githubusercontent.com/u/89490983?s=200&v=4" 
+                      alt="Core Wallet" 
+                      className="w-6 h-6 rounded"
+                      onError={(e) => {
+                        // Fallback to emoji if image fails to load
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling!.textContent = '🏔️';
+                      }}
+                    />
+                    <span className="text-xl" style={{display: 'none'}}>🏔️</span>
+                    <span>
+                      {loading ? 'Connecting...' : 
+                       availableWallets.some(w => w.type === WalletType.CORE) ? 'Core Wallet' : 'Install Core'}
+                    </span>
+                  </button>
 
-                    
-                    <div className="mt-4 text-sm text-gray-500">
-                      <p>💡 Core Wallet is optimized for Avalanche. MetaMask works too!</p>
-                      <p>🏔️ Network will auto-switch to Avalanche Fuji testnet</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <p className="text-red-600 mb-4">❌ No compatible wallets detected</p>
-                    <p className="text-gray-600 mb-4">Please install one of the following:</p>
+                  {/* MetaMask Button - Always Show */}
+                  <button
+                    onClick={() => handleWalletConnect(WalletType.METAMASK)}
+                    disabled={loading}
+                    className={`flex items-center gap-3 ${
+                      availableWallets.some(w => w.type === WalletType.METAMASK)
+                        ? 'bg-orange-500 hover:bg-orange-600' 
+                        : 'bg-gray-400 hover:bg-gray-500'
+                    } disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors min-w-[150px]`}
+                  >
+                    <img 
+                      src="https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg" 
+                      alt="MetaMask" 
+                      className="w-6 h-6"
+                      onError={(e) => {
+                        // Fallback to emoji if image fails to load
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling!.textContent = '🦊';
+                      }}
+                    />
+                    <span className="text-xl" style={{display: 'none'}}>🦊</span>
+                    <span>
+                      {loading ? 'Connecting...' : 
+                       availableWallets.some(w => w.type === WalletType.METAMASK) ? 'MetaMask' : 'Install MetaMask'}
+                    </span>
+                  </button>
+                </div>
 
-                    
-                    <div className="flex gap-4 justify-center">
-                      <a 
-                        href="https://core.app/" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
-                      >
-                        🏔️ Install Core Wallet
-                      </a>
-                      <a 
-                        href="https://metamask.io/" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
-                      >
-                        🦊 Install MetaMask
-                      </a>
-                    </div>
-                  </div>
-                )}
+                <div className="mt-4 text-sm text-gray-500">
+                  <p>💡 Core Wallet is optimized for Avalanche. MetaMask works too!</p>
+                  <p>🏔️ Network will auto-switch to Avalanche Fuji testnet</p>
+                  {(!availableWallets.some(w => w.type === WalletType.CORE) || !availableWallets.some(w => w.type === WalletType.METAMASK)) && (
+                    <p className="mt-2 text-amber-600">
+                      ⚠️ Click "Install Core" or "Install MetaMask" buttons to download the wallets
+                    </p>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="text-center">
