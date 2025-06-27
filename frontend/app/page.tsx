@@ -58,6 +58,25 @@ export default function Home() {
     reason: 'Carbon offset for business operations',
   });
 
+  // View Data form states
+  const [viewCreditForm, setViewCreditForm] = useState({
+    creditId: '2',
+  });
+
+  const [viewBatchForm, setViewBatchForm] = useState({
+    batchId: '1',
+  });
+
+  const [viewTokenForm, setViewTokenForm] = useState({
+    tokenAddress: '',
+    userAddress: '',
+  });
+
+  // View data results
+  const [creditData, setCreditData] = useState<any>(null);
+  const [batchData, setBatchData] = useState<any>(null);
+  const [tokenData, setTokenData] = useState<any>(null);
+
   // Set client-side flag to prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
@@ -130,12 +149,13 @@ export default function Home() {
       }
       
       setWalletAddress(address);
-      setConnected(true);
-      setConnectedWallet(walletType);
-      
-      // Pre-fill recipient fields with connected wallet
-      setMintBatchForm(prev => ({ ...prev, recipient: address }));
-      setMintTokenForm(prev => ({ ...prev, recipient: address }));
+          setConnected(true);
+    setConnectedWallet(walletType);
+    
+    // Pre-fill recipient fields with connected wallet
+    setMintBatchForm(prev => ({ ...prev, recipient: address }));
+    setMintTokenForm(prev => ({ ...prev, recipient: address }));
+    setViewTokenForm(prev => ({ ...prev, userAddress: address }));
     } catch (error: any) {
       console.error('Error connecting wallet:', error);
       alert(`Failed to connect ${walletType}: ${error.message}`);
@@ -150,6 +170,11 @@ export default function Home() {
     setConnectedWallet(null);
     setMintBatchForm(prev => ({ ...prev, recipient: '' }));
     setMintTokenForm(prev => ({ ...prev, recipient: '' }));
+    setViewTokenForm(prev => ({ ...prev, userAddress: '' }));
+    // Clear any displayed data
+    setCreditData(null);
+    setBatchData(null);
+    setTokenData(null);
   };
 
   // Helper function to execute contract transactions
@@ -251,6 +276,122 @@ export default function Home() {
       await tx.wait();
       return tx;
     });
+  };
+
+  // View Data functions
+  const checkCreditStatus = async () => {
+    try {
+      setTxLoading('Check Credit Status');
+      const { signer } = await getWeb3(connectedWallet || undefined);
+      const { oracle } = getContracts(signer);
+      
+      const creditId = parseInt(viewCreditForm.creditId);
+      const credit = await oracle.getCarbonCredit(creditId);
+      
+      // Also get verification request if exists
+      let verificationData = null;
+      try {
+        const requestId = await oracle.creditToRequest(creditId);
+        if (requestId !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+          verificationData = await oracle.getVerificationRequest(requestId);
+        }
+      } catch (error) {
+        console.log('No verification request found for this credit');
+      }
+      
+      setCreditData({
+        creditId,
+        amount: ethers.formatUnits(credit.amount, 18),
+        projectId: credit.projectId,
+        expiryDate: new Date(Number(credit.expiryDate) * 1000).toLocaleDateString(),
+        isVerified: credit.isVerified,
+        owner: credit.owner,
+        createdAt: new Date(Number(credit.createdAt) * 1000).toLocaleString(),
+        verifiedAt: credit.verifiedAt > 0 ? new Date(Number(credit.verifiedAt) * 1000).toLocaleString() : 'Not verified',
+        verification: verificationData ? {
+          gsId: verificationData.gsId,
+          availableForSale: verificationData.availableForSale.toString(),
+          timestamp: verificationData.timestamp,
+          verificationStatus: verificationData.verificationStatus
+        } : null
+      });
+      
+      setTxResult(`✅ Credit status retrieved successfully!`);
+    } catch (error: any) {
+      console.error('Check credit status failed:', error);
+      setCreditData(null);
+      setTxResult(`❌ Failed to get credit status: ${error.message}`);
+    } finally {
+      setTxLoading('');
+    }
+  };
+
+  const viewBatchNFT = async () => {
+    try {
+      setTxLoading('View BatchNFT');
+      const { signer } = await getWeb3(connectedWallet || undefined);
+      const { batchNFT } = getContracts(signer);
+      
+      const batchId = parseInt(viewBatchForm.batchId);
+      const batch = await batchNFT.getBatchMetadata(batchId);
+      const tokenURI = await batchNFT.tokenURI(batchId);
+      
+      setBatchData({
+        batchId,
+        projectId: batch.projectId,
+        totalCredits: ethers.formatUnits(batch.totalCredits, 18),
+        issuedCredits: ethers.formatUnits(batch.issuedCredits, 18),
+        retiredCredits: ethers.formatUnits(batch.retiredCredits, 18),
+        projectTokenAddress: batch.projectTokenAddress,
+        creditId: batch.creditId.toString(),
+        isActive: batch.isActive,
+        createdAt: new Date(Number(batch.createdAt) * 1000).toLocaleString(),
+        projectOwner: batch.projectOwner,
+        tokenURI
+      });
+      
+      setTxResult(`✅ BatchNFT data retrieved successfully!`);
+    } catch (error: any) {
+      console.error('View BatchNFT failed:', error);
+      setBatchData(null);
+      setTxResult(`❌ Failed to get BatchNFT data: ${error.message}`);
+    } finally {
+      setTxLoading('');
+    }
+  };
+
+  const checkTokenBalance = async () => {
+    try {
+      setTxLoading('Check Token Balance');
+      const { signer } = await getWeb3(connectedWallet || undefined);
+      const projectToken = getProjectTokenContract(viewTokenForm.tokenAddress, signer);
+      
+      const name = await projectToken.name();
+      const symbol = await projectToken.symbol();
+      const totalSupply = await projectToken.totalSupply();
+      const balance = await projectToken.balanceOf(viewTokenForm.userAddress);
+      const totalRetired = await projectToken.totalRetired();
+      const batchId = await projectToken.batchId();
+      
+      setTokenData({
+        tokenAddress: viewTokenForm.tokenAddress,
+        userAddress: viewTokenForm.userAddress,
+        name,
+        symbol,
+        totalSupply: ethers.formatUnits(totalSupply, 18),
+        balance: ethers.formatUnits(balance, 18),
+        totalRetired: ethers.formatUnits(totalRetired, 18),
+        batchId: batchId.toString()
+      });
+      
+      setTxResult(`✅ Token balance retrieved successfully!`);
+    } catch (error: any) {
+      console.error('Check token balance failed:', error);
+      setTokenData(null);
+      setTxResult(`❌ Failed to get token balance: ${error.message}`);
+    } finally {
+      setTxLoading('');
+    }
   };
 
   const tabs = [
@@ -865,11 +1006,17 @@ export default function Home() {
                           <div className="flex space-x-2">
                             <input
                               type="number"
+                              value={viewCreditForm.creditId}
+                              onChange={(e) => setViewCreditForm({...viewCreditForm, creditId: e.target.value})}
                               placeholder="Credit ID"
                               className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
                             />
-                            <button className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm hover:bg-orange-700">
-                              Check
+                            <button 
+                              onClick={checkCreditStatus}
+                              disabled={!!txLoading}
+                              className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm hover:bg-orange-700 disabled:opacity-50"
+                            >
+                              {txLoading === 'Check Credit Status' ? '⏳' : 'Check'}
                             </button>
                           </div>
                         </div>
@@ -879,11 +1026,17 @@ export default function Home() {
                           <div className="flex space-x-2">
                             <input
                               type="number"
+                              value={viewBatchForm.batchId}
+                              onChange={(e) => setViewBatchForm({...viewBatchForm, batchId: e.target.value})}
                               placeholder="Batch ID"
                               className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
                             />
-                            <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
-                              View
+                            <button 
+                              onClick={viewBatchNFT}
+                              disabled={!!txLoading}
+                              className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
+                            >
+                              {txLoading === 'View BatchNFT' ? '⏳' : 'View'}
                             </button>
                           </div>
                         </div>
@@ -893,35 +1046,101 @@ export default function Home() {
                           <div className="space-y-2">
                             <input
                               type="text"
+                              value={viewTokenForm.tokenAddress}
+                              onChange={(e) => setViewTokenForm({...viewTokenForm, tokenAddress: e.target.value})}
                               placeholder="Token Address"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
                             />
                             <input
                               type="text"
+                              value={viewTokenForm.userAddress}
+                              onChange={(e) => setViewTokenForm({...viewTokenForm, userAddress: e.target.value})}
                               placeholder="User Address"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
                             />
-                            <button className="w-full bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700">
-                              Check Balance
+                            <button 
+                              onClick={checkTokenBalance}
+                              disabled={!!txLoading}
+                              className="w-full bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 disabled:opacity-50"
+                            >
+                              {txLoading === 'Check Token Balance' ? '⏳ Checking...' : 'Check Balance'}
                             </button>
                           </div>
                         </div>
                       </div>
 
                       <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-gray-800 mb-2">Available Queries:</h4>
-                        <ul className="text-sm text-gray-600 space-y-2">
-                          <li>• <strong>Credit Status:</strong> Verification status, Chainlink data</li>
-                          <li>• <strong>BatchNFT Metadata:</strong> Dynamic NFT data with oracle info</li>
-                          <li>• <strong>Token Info:</strong> Balance, total supply, retirement records</li>
-                          <li>• <strong>Verification Requests:</strong> Chainlink Functions history</li>
-                        </ul>
+                        <h4 className="font-semibold text-gray-800 mb-2">Query Results:</h4>
                         
-                        <div className="mt-4 p-3 bg-blue-100 rounded">
-                          <p className="text-blue-800 text-sm">
-                            💡 Use existing deployed contracts or create new ones through the demo
-                          </p>
-                        </div>
+                        {/* Credit Data Display */}
+                        {creditData && (
+                          <div className="mb-4 p-3 bg-orange-100 rounded">
+                            <h5 className="font-medium text-orange-800 mb-2">📊 Credit #{creditData.creditId}</h5>
+                            <div className="text-sm text-orange-700 space-y-1">
+                              <p><strong>Amount:</strong> {creditData.amount} tonnes CO2</p>
+                              <p><strong>Project:</strong> {creditData.projectId}</p>
+                              <p><strong>Status:</strong> {creditData.isVerified ? '✅ Verified' : '⏳ Pending'}</p>
+                              <p><strong>Owner:</strong> {creditData.owner}</p>
+                              <p><strong>Created:</strong> {creditData.createdAt}</p>
+                              <p><strong>Verified:</strong> {creditData.verifiedAt}</p>
+                              {creditData.verification && (
+                                <div className="mt-2 p-2 bg-orange-200 rounded">
+                                  <p className="font-medium">Chainlink Data:</p>
+                                  <p>GS ID: {creditData.verification.gsId}</p>
+                                  <p>Available: {creditData.verification.availableForSale}</p>
+                                  <p>Status: {creditData.verification.verificationStatus === 1 ? 'Verified' : creditData.verification.verificationStatus === 2 ? 'Failed' : 'Pending'}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Batch Data Display */}
+                        {batchData && (
+                          <div className="mb-4 p-3 bg-green-100 rounded">
+                            <h5 className="font-medium text-green-800 mb-2">🎨 BatchNFT #{batchData.batchId}</h5>
+                            <div className="text-sm text-green-700 space-y-1">
+                              <p><strong>Project:</strong> {batchData.projectId}</p>
+                              <p><strong>Total Credits:</strong> {batchData.totalCredits}</p>
+                              <p><strong>Issued:</strong> {batchData.issuedCredits}</p>
+                              <p><strong>Retired:</strong> {batchData.retiredCredits}</p>
+                              <p><strong>Token Address:</strong> {batchData.projectTokenAddress}</p>
+                              <p><strong>Credit ID:</strong> {batchData.creditId}</p>
+                              <p><strong>Active:</strong> {batchData.isActive ? 'Yes' : 'No'}</p>
+                              <p><strong>Created:</strong> {batchData.createdAt}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Token Data Display */}
+                        {tokenData && (
+                          <div className="mb-4 p-3 bg-purple-100 rounded">
+                            <h5 className="font-medium text-purple-800 mb-2">🪙 {tokenData.name} ({tokenData.symbol})</h5>
+                            <div className="text-sm text-purple-700 space-y-1">
+                              <p><strong>Balance:</strong> {tokenData.balance}</p>
+                              <p><strong>Total Supply:</strong> {tokenData.totalSupply}</p>
+                              <p><strong>Total Retired:</strong> {tokenData.totalRetired}</p>
+                              <p><strong>Batch ID:</strong> {tokenData.batchId}</p>
+                              <p><strong>User:</strong> {tokenData.userAddress}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {!creditData && !batchData && !tokenData && (
+                          <div className="text-sm text-gray-500">
+                            <p>Available Queries:</p>
+                            <ul className="mt-2 space-y-1">
+                              <li>• <strong>Credit Status:</strong> Verification status, Chainlink data</li>
+                              <li>• <strong>BatchNFT Metadata:</strong> Dynamic NFT data with oracle info</li>
+                              <li>• <strong>Token Info:</strong> Balance, total supply, retirement records</li>
+                            </ul>
+                            <div className="mt-4 p-3 bg-blue-100 rounded">
+                              <p className="text-blue-800 text-sm">
+                                💡 Use existing deployed contracts or create new ones through the demo
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
