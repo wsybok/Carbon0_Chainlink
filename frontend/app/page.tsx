@@ -218,7 +218,26 @@ export default function Home() {
   const registerCarbonCredit = async () => {
     await executeTransaction('Register Carbon Credit', async () => {
       const { signer } = await getWeb3(connectedWallet || undefined);
-      const { oracle } = getContracts(signer);
+      const { oracle, batchNFT } = getContracts(signer);
+      
+      // 🎯 CHECK: Prevent duplicate project registrations (One Project = One NFT)
+      const nextBatchId = await batchNFT.nextBatchId();
+      const existingProjects = new Set();
+      
+      for (let i = 1; i < Number(nextBatchId); i++) {
+        try {
+          const batch = await batchNFT.getBatchMetadata(i);
+          if (batch.isActive) {
+            existingProjects.add(batch.projectId);
+          }
+        } catch (error) {
+          // Batch doesn't exist or is inactive, skip
+        }
+      }
+      
+      if (existingProjects.has(registerForm.projectId)) {
+        throw new Error(`❌ Project ${registerForm.projectId} already has an active BatchNFT!\n\n💡 Our system follows "One Project = One NFT" model.\nEach Gold Standard project can only have one BatchNFT.\n\nUse a different project ID like:\n• GS-15235 (Wind Farm Maharashtra India)\n• GS-15236 (Improved Cookstoves Cambodia)`);
+      }
       
       const amount = ethers.parseUnits(registerForm.amount, 18);
       const verificationHash = ethers.keccak256(ethers.toUtf8Bytes(`verification_${Date.now()}`));
@@ -781,7 +800,7 @@ export default function Home() {
 
   const tabs = [
     { id: 'overview', label: '📋 Overview', icon: '📋' },
-    { id: 'register', label: '📝 Register Batch', icon: '📝' },
+    { id: 'register', label: '📝 Register Project', icon: '📝' },
     { id: 'verify', label: '🔗 Verify with Chainlink', icon: '🔗' },
     { id: 'mint-batch', label: '🎨 Mint BatchNFT', icon: '🎨' },
     { id: 'mint-tokens', label: '🪙 Mint Tokens', icon: '🪙' },
@@ -1293,28 +1312,31 @@ export default function Home() {
                 {activeTab === 'register' && (
                   <div className="space-y-6">
                     <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                      📝 Register Credit Batch from Gold Standard Project
+                      📝 Register Gold Standard Project (One Project = One NFT)
                     </h3>
-                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-blue-800 text-sm">
-                        💡 <strong>Key Concept:</strong> This registers a specific batch of carbon credits from a Gold Standard project. 
-                        Multiple batches can be created from the same project (e.g., GS-15234), each getting its own Credit ID and potential BatchNFT.
+                    <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <p className="text-green-800 text-sm">
+                        🎯 <strong>One Project = One NFT Model:</strong> Each Gold Standard project (e.g., GS-15234) can only have ONE BatchNFT. 
+                        This creates a clean mapping where each project gets exactly one NFT representation, avoiding duplicates.
+                      </p>
+                      <p className="text-green-700 text-xs mt-2">
+                        ✅ Our system will prevent registering the same project twice
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Batch Size (tonnes CO2e)
+                            Project Credits (tonnes CO2e)
                           </label>
                           <input
                             type="number"
                             value={registerForm.amount}
                             onChange={(e) => setRegisterForm({...registerForm, amount: e.target.value})}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="5000"
+                            placeholder="75000"
                           />
-                          <p className="text-xs text-gray-600 mt-1">Amount of credits in this batch from the project</p>
+                          <p className="text-xs text-gray-600 mt-1">Total carbon credits available from this project</p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1345,33 +1367,37 @@ export default function Home() {
                           disabled={!!txLoading}
                           className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-lg font-medium disabled:opacity-50"
                         >
-                          {txLoading === 'Register Carbon Credit' ? '⏳ Registering Batch...' : '📝 Register Credit Batch'}
+                          {txLoading === 'Register Carbon Credit' ? '⏳ Registering Project...' : '📝 Register Project'}
                         </button>
                       </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="font-semibold text-gray-800 mb-2">📋 What this does:</h4>
                         <ul className="text-sm text-gray-600 space-y-1">
-                          <li>• Registers a <strong>batch/portion</strong> of credits from a Gold Standard project</li>
-                          <li>• Creates a unique internal Credit ID for tracking</li>
-                          <li>• Sets up this batch for Chainlink verification</li>
-                          <li>• One project can have multiple credit batches</li>
+                          <li>• Registers credits from a Gold Standard project for NFT creation</li>
+                          <li>• Creates a unique internal Credit ID for oracle tracking</li>
+                          <li>• Sets up project for Chainlink verification</li>
+                          <li>• <strong>Enforces one project = one NFT policy</strong></li>
                         </ul>
                         
-                        <div className="mt-4 p-3 bg-yellow-100 rounded border border-yellow-300">
-                          <h5 className="font-medium text-yellow-800 mb-1">💡 Understanding the Flow:</h5>
-                          <div className="text-yellow-700 text-xs space-y-1">
-                            <p><strong>Project ID</strong> (GS-15234) = The actual Gold Standard project</p>
-                            <p><strong>Credit ID</strong> (1, 2, 3...) = Internal batch registration for oracle tracking</p>
-                            <p><strong>BatchNFT</strong> = NFT representing this specific credit batch</p>
-                            <p className="text-yellow-600">⚠️ Multiple batches can come from the same project</p>
+                        <div className="mt-4 p-3 bg-green-100 rounded border border-green-300">
+                          <h5 className="font-medium text-green-800 mb-1">🎯 One Project = One NFT:</h5>
+                          <div className="text-green-700 text-xs space-y-1">
+                            <p><strong>GS-15234</strong> → Credit ID 1 → ONE BatchNFT ✅</p>
+                            <p><strong>GS-15235</strong> → Credit ID 2 → ONE BatchNFT ✅</p>
+                            <p><strong>GS-15236</strong> → Credit ID 3 → ONE BatchNFT ✅</p>
+                            <p className="text-green-600">✅ Clean, simple, no duplicates!</p>
                           </div>
                         </div>
                         
                         <div className="mt-4 p-3 bg-blue-100 rounded">
-                          <h5 className="font-medium text-blue-800 mb-1">🎯 Demo Instructions:</h5>
-                          <p className="text-blue-700 text-sm">
-                            Use <strong>GS-15234</strong> (Solar Kenya) or <strong>GS-15235</strong> (Wind India) for demo. 
-                            These have live data in our Gold Standard API mockup.
+                          <h5 className="font-medium text-blue-800 mb-1">🎯 Available Demo Projects:</h5>
+                          <div className="text-blue-700 text-xs space-y-1">
+                            <p><strong>✅ Available:</strong> GS-15235 (Wind Farm Maharashtra India - 75,000 credits)</p>
+                            <p><strong>✅ Available:</strong> GS-15236 (Improved Cookstoves Cambodia - pending)</p>
+                            <p><strong>❌ Used:</strong> GS-15234 (Solar Kenya - already has BatchNFT #1)</p>
+                          </div>
+                          <p className="text-blue-600 text-sm mt-2 font-medium">
+                            💡 Use GS-15235 for your next registration!
                           </p>
                         </div>
                       </div>
