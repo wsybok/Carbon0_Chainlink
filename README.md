@@ -154,24 +154,6 @@ return Functions.encodeString(result);
 | **CarbonVerificationOracle.sol** | Core Chainlink Functions integration for real-time carbon credit verification | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/CarbonVerificationOracle.sol) |
 | **BatchNFT.sol** | Dynamic NFT contract using Chainlink verification data for metadata | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/BatchNFT.sol) |
 
-### ⚙️ Configuration & Deployment
-
-| File | Description | GitHub Link |
-|------|-------------|-------------|
-| **scripts/config.js** | Chainlink Functions configuration for multiple networks (Avalanche, Polygon, Ethereum) | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/config.js) |
-| **scripts/deploy.js** | Main deployment script with Chainlink Functions setup | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/deploy.js) |
-| **scripts/deploy-high-gas.js** | High gas deployment script for Chainlink Functions | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/deploy-high-gas.js) |
-| **scripts/deploy-batch-nft-system.js** | Complete system deployment including Chainlink integration | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/deploy-batch-nft-system.js) |
-
-### 🧪 Testing & Verification Scripts
-
-| File | Description | GitHub Link |
-|------|-------------|-------------|
-| **scripts/test-chainlink-integration.js** | Comprehensive test of Chainlink Functions integration | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/test-chainlink-integration.js) |
-| **scripts/check-verification-status.js** | Check Chainlink Functions verification status | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/check-verification-status.js) |
-| **scripts/test-nft-metadata.js** | Test dynamic NFT metadata powered by Chainlink | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/test-nft-metadata.js) |
-| **scripts/view-nft-metadata.js** | View NFT metadata with live Chainlink Functions data | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/view-nft-metadata.js) |
-| **scripts/mint-batch-nft-simple.js** | Mint BatchNFT with Chainlink verification requirements | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/mint-batch-nft-simple.js) |
 
 ### 💻 Frontend Integration
 
