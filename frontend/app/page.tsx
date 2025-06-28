@@ -940,7 +940,7 @@ export default function Home() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            🌱 OneTon
+            🌱 Carbon0
           </h1>
           <p className="text-gray-600 text-lg font-bold mb-2">
             Turning real-world carbon impact into cross-chain digital assets
@@ -1050,7 +1050,7 @@ export default function Home() {
               📋 Deployed Contracts - Avalanche Fuji Testnet
             </h2>
             <p className="text-gray-600 mb-6">
-              Live smart contracts powering the OneTon carbon credit verification system
+              Live smart contracts powering the Carbon0 carbon credit verification system
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
