@@ -145,6 +145,84 @@ return Functions.encodeString(result);
 
 ---
 
+## 📋 Chainlink Integration Files
+
+### 🔗 Smart Contracts
+
+| File | Description | GitHub Link |
+|------|-------------|-------------|
+| **CarbonVerificationOracle.sol** | Core Chainlink Functions integration for real-time carbon credit verification | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/CarbonVerificationOracle.sol) |
+| **BatchNFT.sol** | Dynamic NFT contract using Chainlink verification data for metadata | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/BatchNFT.sol) |
+
+### ⚙️ Configuration & Deployment
+
+| File | Description | GitHub Link |
+|------|-------------|-------------|
+| **scripts/config.js** | Chainlink Functions configuration for multiple networks (Avalanche, Polygon, Ethereum) | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/config.js) |
+| **scripts/deploy.js** | Main deployment script with Chainlink Functions setup | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/deploy.js) |
+| **scripts/deploy-high-gas.js** | High gas deployment script for Chainlink Functions | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/deploy-high-gas.js) |
+| **scripts/deploy-batch-nft-system.js** | Complete system deployment including Chainlink integration | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/deploy-batch-nft-system.js) |
+
+### 🧪 Testing & Verification Scripts
+
+| File | Description | GitHub Link |
+|------|-------------|-------------|
+| **scripts/test-chainlink-integration.js** | Comprehensive test of Chainlink Functions integration | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/test-chainlink-integration.js) |
+| **scripts/check-verification-status.js** | Check Chainlink Functions verification status | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/check-verification-status.js) |
+| **scripts/test-nft-metadata.js** | Test dynamic NFT metadata powered by Chainlink | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/test-nft-metadata.js) |
+| **scripts/view-nft-metadata.js** | View NFT metadata with live Chainlink Functions data | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/view-nft-metadata.js) |
+| **scripts/mint-batch-nft-simple.js** | Mint BatchNFT with Chainlink verification requirements | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/scripts/mint-batch-nft-simple.js) |
+
+### 💻 Frontend Integration
+
+| File | Description | GitHub Link |
+|------|-------------|-------------|
+| **frontend/app/page.tsx** | Main React application with Chainlink Functions UI integration | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/frontend/app/page.tsx) |
+| **frontend/app/layout.tsx** | App layout with Chainlink-related metadata | [View File](https://github.com/wsybok/OneTon_Chainlink/blob/main/frontend/app/layout.tsx) |
+
+### 🎯 Key Chainlink Features Implemented
+
+#### **1. Real-time API Verification**
+- **Files**: `CarbonVerificationOracle.sol`, `test-chainlink-integration.js`
+- **Function**: Live Gold Standard API calls via Chainlink Functions DON
+- **JavaScript Code**: Executed on decentralized oracle network
+
+#### **2. Dynamic NFT Metadata**
+- **Files**: `BatchNFT.sol`, `view-nft-metadata.js`, `test-nft-metadata.js`
+- **Function**: NFT metadata updates automatically with Chainlink verification data
+- **Real-time Updates**: Live project status, credit availability, timestamps
+
+#### **3. Multi-Network Support**
+- **Files**: `config.js`, `deploy.js`
+- **Networks**: Avalanche Fuji, Polygon Mumbai, Ethereum Sepolia
+- **Configuration**: Router addresses, DON IDs, gateway URLs
+
+#### **4. Frontend Integration**
+- **Files**: `frontend/app/page.tsx`
+- **Features**: Real-time verification status, live polling, user-friendly displays
+- **UI Elements**: Progress indicators, result visualization, error handling
+
+### 🔧 How to Use These Files
+
+```bash
+# 1. Configure Chainlink settings
+vim scripts/config.js
+
+# 2. Deploy with Chainlink integration
+npx hardhat run scripts/deploy.js --network avalancheFuji
+
+# 3. Test Chainlink Functions
+npx hardhat run scripts/test-chainlink-integration.js --network avalancheFuji
+
+# 4. Check verification status
+npx hardhat run scripts/check-verification-status.js --network avalancheFuji
+
+# 5. View dynamic NFT metadata
+npx hardhat run scripts/view-nft-metadata.js --network avalancheFuji
+```
+
+---
+
 ## 🚀 Smart Contracts (Avalanche Fuji)
 
 ### Deployed Addresses
