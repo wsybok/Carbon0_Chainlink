@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
 ---
-
+[Live Demo](https://carbon0-chainlink.vercel.app/)
 ## 🌟 Overview
 
 **Carbon0** is a revolutionary blockchain platform that bridges real-world carbon credits with decentralized finance through **dynamic NFTs powered by Chainlink Functions**. The platform enables real-time verification of carbon credits from the Gold Standard registry, creating trustworthy, liquid digital assets for the carbon market.
@@ -444,45 +444,11 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 🆘 Support
-
-### Documentation
-
-- **📚 Chainlink Functions**: [docs.chain.link/chainlink-functions](https://docs.chain.link/chainlink-functions)
-- **🏔️ Avalanche**: [docs.avax.network](https://docs.avax.network)
-- **⚛️ Next.js**: [nextjs.org/docs](https://nextjs.org/docs)
-
-### Community
-
-- **🐦 Twitter**: [@Carbon0_](https://twitter.com/carbon0_)
-- **💬 Discord**: [Join our community](https://discord.gg/carbon0)
-- **📧 Email**: support@carbon0.dev
-
-### Issues & Bugs
-
-Found a bug? Please [create an issue](https://github.com/wsybok/OneTon_Chainlink/issues) with:
-- **Environment** details
-- **Steps** to reproduce
-- **Expected** vs actual behavior
-- **Screenshots** if applicable
-
----
-
-## 🙏 Acknowledgments
-
-- **🔗 Chainlink Labs**: For Chainlink Functions technology
-- **🏔️ Avalanche**: For fast, low-cost blockchain infrastructure
-- **🌍 Gold Standard**: For carbon project verification standards
-- **⚛️ Vercel**: For seamless deployment platform
-
----
 
 <div align="center">
 
 ### 🌱 Building the Future of Carbon Markets
 
 **Made with ❤️ for a sustainable future**
-
-[Live Demo](https://carbon0.vercel.app) • [Documentation](https://docs.carbon0.dev) • [GitHub](https://github.com/wsybok/OneTon_Chainlink)
 
 </div>
