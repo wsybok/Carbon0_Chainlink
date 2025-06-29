@@ -922,12 +922,12 @@ export default function Home() {
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🌱</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Carbon Credit BatchNFT System</h1>
-          <p className="text-gray-600">Loading application...</p>
-          <div className="mt-4">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+        <div className="text-center animate-slide-up bg-white p-12 rounded-3xl shadow-2xl">
+          <div className="text-8xl mb-6 animate-float">🌱</div>
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">Carbon Credit BatchNFT System</h1>
+          <p className="text-gray-600 text-lg mb-6">Loading application...</p>
+          <div className="mt-6">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
           </div>
         </div>
       </div>
@@ -936,136 +936,147 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            🌱 Carbon0
-          </h1>
-          <p className="text-gray-600 text-lg font-bold mb-2">
+        <div className="mb-12 text-center animate-slide-up">
+          <div className="inline-block animate-float mb-6">
+            <h1 className="text-7xl font-bold text-gray-800 mb-4">
+              🌱 Carbon0
+            </h1>
+          </div>
+          <p className="text-gray-700 text-2xl font-bold mb-4">
             Turning real-world carbon impact into cross-chain digital assets
           </p>
-          <p className="text-blue-600 font-medium mb-6 text-center">
-            Chainlink Chromion Hackathon Demo
-          </p>
+          <div className="bg-white inline-block px-8 py-4 rounded-full mb-8 shadow-lg border-2 border-blue-200">
+            <p className="text-blue-600 font-bold text-lg animate-pulse">
+              🏆 Chainlink Functions Hackathon Demo
+            </p>
+          </div>
           
           {/* Wallet Connection */}
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-semibold mb-4">🔗 Wallet Connection</h2>
+          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-12 animate-slide-up card-hover">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
+              <span className="animate-glow">🔗</span> Wallet Connection
+            </h2>
             
-            {!connected ? (
-              <div>
-                <p className="text-gray-600 mb-4">Choose your wallet to connect:</p>
-                <div className="flex flex-wrap gap-4 justify-center">
-                  {/* Core Wallet Button - Always Show */}
-                  <button
-                    onClick={() => handleWalletConnect(WalletType.CORE)}
-                    disabled={loading}
-                    className={`flex items-center gap-3 ${
-                      availableWallets.some(w => w.type === WalletType.CORE)
-                        ? 'bg-gray-800 hover:bg-gray-900 border-2 border-gray-600 hover:border-gray-500' 
-                        : 'bg-gray-500 hover:bg-gray-600 border-2 border-gray-400'
-                    } disabled:bg-gray-400 disabled:border-gray-300 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 min-w-[160px] shadow-lg hover:shadow-xl transform hover:scale-105`}
-                  >
-                    <img 
-                      src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/avalanche-avax-icon.svg" 
-                      alt="Core Wallet" 
-                      className="w-6 h-6 rounded"
-                      onError={(e) => {
-                        // Fallback to emoji if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling!.textContent = '🏔️';
-                      }}
-                    />
-                    <span className="text-xl" style={{display: 'none'}}>🏔️</span>
-                    <span>
-                      {loading ? 'Connecting...' : 
-                       availableWallets.some(w => w.type === WalletType.CORE) ? 'Core Wallet' : 'Install Core'}
-                    </span>
-                  </button>
+                          {!connected ? (
+                <div>
+                  <p className="text-gray-600 mb-6 text-lg text-center">Choose your wallet to connect:</p>
+                  <div className="flex flex-wrap gap-6 justify-center">
+                    {/* Core Wallet Button - Always Show */}
+                    <button
+                      onClick={() => handleWalletConnect(WalletType.CORE)}
+                      disabled={loading}
+                      className={`flex items-center gap-4 ${
+                        availableWallets.some(w => w.type === WalletType.CORE)
+                          ? 'bg-gray-800 hover:bg-gray-900 border-2 border-gray-600 hover:border-gray-500' 
+                          : 'bg-gray-500 hover:bg-gray-600 border-2 border-gray-400'
+                      } disabled:bg-gray-400 disabled:border-gray-300 text-white px-8 py-4 rounded-2xl font-bold text-lg min-w-[200px] animate-scale-bounce shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300`}
+                    >
+                      <img 
+                        src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/avalanche-avax-icon.svg" 
+                        alt="Core Wallet" 
+                        className="w-8 h-8 rounded animate-float"
+                        onError={(e) => {
+                          // Fallback to emoji if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling!.textContent = '🏔️';
+                        }}
+                      />
+                      <span className="text-2xl animate-float" style={{display: 'none'}}>🏔️</span>
+                      <span>
+                        {loading ? '⏳ Connecting...' : 
+                         availableWallets.some(w => w.type === WalletType.CORE) ? 'Core Wallet' : 'Install Core'}
+                      </span>
+                    </button>
 
-                  {/* MetaMask Button - Always Show */}
-                  <button
-                    onClick={() => handleWalletConnect(WalletType.METAMASK)}
-                    disabled={loading}
-                    className={`flex items-center gap-3 ${
-                      availableWallets.some(w => w.type === WalletType.METAMASK)
-                        ? 'bg-gray-800 hover:bg-gray-900 border-2 border-gray-600 hover:border-gray-500' 
-                        : 'bg-gray-500 hover:bg-gray-600 border-2 border-gray-400'
-                    } disabled:bg-gray-400 disabled:border-gray-300 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 min-w-[160px] shadow-lg hover:shadow-xl transform hover:scale-105`}
-                  >
-                    <img 
-                      src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/metamask-icon.svg" 
-                      alt="MetaMask" 
-                      className="w-6 h-6"
-                      onError={(e) => {
-                        // Fallback to emoji if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling!.textContent = '🦊';
-                      }}
-                    />
-                    <span className="text-xl" style={{display: 'none'}}>🦊</span>
-                    <span>
-                      {loading ? 'Connecting...' : 
-                       availableWallets.some(w => w.type === WalletType.METAMASK) ? 'MetaMask' : 'Install MetaMask'}
-                    </span>
-                  </button>
+                    {/* MetaMask Button - Always Show */}
+                    <button
+                      onClick={() => handleWalletConnect(WalletType.METAMASK)}
+                      disabled={loading}
+                      className={`flex items-center gap-4 ${
+                        availableWallets.some(w => w.type === WalletType.METAMASK)
+                          ? 'bg-gray-800 hover:bg-gray-900 border-2 border-gray-600 hover:border-gray-500' 
+                          : 'bg-gray-500 hover:bg-gray-600 border-2 border-gray-400'
+                      } disabled:bg-gray-400 disabled:border-gray-300 text-white px-8 py-4 rounded-2xl font-bold text-lg min-w-[200px] animate-scale-bounce shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300`}
+                    >
+                      <img 
+                        src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/metamask-icon.svg" 
+                        alt="MetaMask" 
+                        className="w-8 h-8 animate-float"
+                        onError={(e) => {
+                          // Fallback to emoji if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling!.textContent = '🦊';
+                        }}
+                      />
+                      <span className="text-2xl animate-float" style={{display: 'none'}}>🦊</span>
+                      <span>
+                        {loading ? '⏳ Connecting...' : 
+                         availableWallets.some(w => w.type === WalletType.METAMASK) ? 'MetaMask' : 'Install MetaMask'}
+                      </span>
+                    </button>
+                  </div>
+
+                  <div className="mt-8 text-gray-600 text-center bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <p className="mb-2">💡 <span className="font-bold">Core Wallet</span> is optimized for Avalanche. MetaMask works too!</p>
+                    <p className="mb-2">🏔️ Network will auto-switch to <span className="text-blue-600 font-bold">Avalanche Fuji testnet</span></p>
+                    {(!availableWallets.some(w => w.type === WalletType.CORE) || !availableWallets.some(w => w.type === WalletType.METAMASK)) && (
+                      <p className="mt-3 text-amber-600 font-bold animate-pulse">
+                        ⚠️ Click "Install Core" or "Install MetaMask" buttons to download missing wallets
+                      </p>
+                    )}
+                  </div>
                 </div>
-
-                <div className="mt-4 text-sm text-gray-500">
-                  <p>💡 Core Wallet is optimized for Avalanche. MetaMask works too!</p>
-                  <p>🏔️ Network will auto-switch to Avalanche Fuji testnet</p>
-                  {(!availableWallets.some(w => w.type === WalletType.CORE) || !availableWallets.some(w => w.type === WalletType.METAMASK)) && (
-                    <p className="mt-2 text-amber-600">
-                      ⚠️ Click "Install Core" or "Install MetaMask" buttons to download the wallets
+                          ) : (
+                <div className="text-center">
+                  <div className="bg-green-100 border-2 border-green-300 rounded-2xl p-6 mb-6 animate-pulse-glow">
+                    <div className="text-4xl mb-3 animate-float">
+                      {connectedWallet === WalletType.CORE && '🏔️'}
+                      {connectedWallet === WalletType.METAMASK && '🦊'}
+                    </div>
+                    <p className="text-green-800 font-bold text-xl mb-2">
+                      ✅ Connected to {connectedWallet}
                     </p>
-                  )}
+                    <p className="text-green-700 text-sm font-mono bg-white p-3 rounded-xl break-all">
+                      {walletAddress}
+                    </p>
+                  </div>
+                  <button
+                    onClick={disconnectWallet}
+                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  >
+                    🔌 Disconnect Wallet
+                  </button>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="bg-green-100 border border-green-300 rounded-lg p-4 mb-4">
-                  <p className="text-green-800 font-medium">
-                    ✅ Connected to {connectedWallet} 
-                    {connectedWallet === WalletType.CORE && ' 🏔️'}
-                    {connectedWallet === WalletType.METAMASK && ' 🦊'}
-                  </p>
-                  <p className="text-green-700 text-sm font-mono">{walletAddress}</p>
-                </div>
-                <button
-                  onClick={disconnectWallet}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
-                >
-                  Disconnect Wallet
-                </button>
-              </div>
-            )}
+              )}
           </div>
         </div>
 
         {/* Contract Addresses - Prominent Display for Judges */}
         {connected && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-              📋 Deployed Contracts - Avalanche Fuji Testnet
+          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-12 card-hover animate-slide-up">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
+              <span className="animate-glow">📋</span> Deployed Contracts
+              <div className="text-lg font-normal text-gray-600 mt-2">Avalanche Fuji Testnet</div>
             </h2>
-            <p className="text-gray-600 mb-6">
-              Live smart contracts powering the Carbon0 carbon credit verification system
+            <p className="text-gray-600 mb-8 text-center text-lg">
+              Live smart contracts powering the <span className="text-blue-600 font-bold">Carbon0</span> carbon credit verification system
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-                <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
-                  🔗 Carbon Verification Oracle
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-orange-50 p-8 rounded-2xl border-2 border-orange-200 card-hover animate-slide-up">
+                <h3 className="font-bold text-orange-800 mb-4 flex items-center text-xl">
+                  <span className="animate-glow text-3xl mr-3">🔗</span> Carbon Verification Oracle
                 </h3>
-                <p className="text-xs font-mono break-all text-orange-700 bg-white p-3 rounded mb-3">
+                <p className="text-sm font-mono break-all text-orange-700 bg-white p-4 rounded-xl mb-4 shadow-sm">
                   0xc195a76987dd0E62407811dc21927C322a85e9eF
                 </p>
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <a
                     href="https://testnet.snowtrace.io/address/0xc195a76987dd0E62407811dc21927C322a85e9eF"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-orange-600 text-white px-3 py-2 rounded text-xs text-center hover:bg-orange-700 transition-colors"
+                    className="flex-1 bg-orange-600 text-white px-4 py-3 rounded-xl text-sm text-center hover:bg-orange-700 transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     🔍 Explorer
                   </a>
@@ -1073,26 +1084,26 @@ export default function Home() {
                     href="https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/CarbonVerificationOracle.sol"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded text-xs text-center hover:bg-gray-800 transition-colors"
+                    className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-xl text-sm text-center hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     📄 Code
                   </a>
                 </div>
               </div>
 
-              <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                <h3 className="font-semibold text-green-800 mb-3 flex items-center">
-                  🎨 Batch NFT Contract
+              <div className="bg-green-50 p-8 rounded-2xl border-2 border-green-200 card-hover animate-slide-up">
+                <h3 className="font-bold text-green-800 mb-4 flex items-center text-xl">
+                  <span className="animate-glow text-3xl mr-3">🎨</span> Batch NFT Contract
                 </h3>
-                <p className="text-xs font-mono break-all text-green-700 bg-white p-3 rounded mb-3">
+                <p className="text-sm font-mono break-all text-green-700 bg-white p-4 rounded-xl mb-4 shadow-sm">
                   0x4134f7B9eCC847D8548176471A31D408959254f9
                 </p>
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <a
                     href="https://testnet.snowtrace.io/address/0x4134f7B9eCC847D8548176471A31D408959254f9"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-xs text-center hover:bg-green-700 transition-colors"
+                    className="flex-1 bg-green-600 text-white px-4 py-3 rounded-xl text-sm text-center hover:bg-green-700 transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     🔍 Explorer
                   </a>
@@ -1100,26 +1111,26 @@ export default function Home() {
                     href="https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/BatchNFT.sol"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded text-xs text-center hover:bg-gray-800 transition-colors"
+                    className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-xl text-sm text-center hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     📄 Code
                   </a>
                 </div>
               </div>
 
-              <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-                <h3 className="font-semibold text-purple-800 mb-3 flex items-center">
-                  🏭 Token Factory Contract
+              <div className="bg-purple-50 p-8 rounded-2xl border-2 border-purple-200 card-hover animate-slide-up">
+                <h3 className="font-bold text-purple-800 mb-4 flex items-center text-xl">
+                  <span className="animate-glow text-3xl mr-3">🏭</span> Token Factory Contract
                 </h3>
-                <p className="text-xs font-mono break-all text-purple-700 bg-white p-3 rounded mb-3">
+                <p className="text-sm font-mono break-all text-purple-700 bg-white p-4 rounded-xl mb-4 shadow-sm">
                   0x0B6D191B449EBB814Eb0332490683a802947b2CA
                 </p>
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <a
                     href="https://testnet.snowtrace.io/address/0x0B6D191B449EBB814Eb0332490683a802947b2CA"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-purple-600 text-white px-3 py-2 rounded text-xs text-center hover:bg-purple-700 transition-colors"
+                    className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-xl text-sm text-center hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     🔍 Explorer
                   </a>
@@ -1127,7 +1138,7 @@ export default function Home() {
                     href="https://github.com/wsybok/OneTon_Chainlink/blob/main/contracts/TokenFactory.sol"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded text-xs text-center hover:bg-gray-800 transition-colors"
+                    className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-xl text-sm text-center hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     📄 Code
                   </a>
@@ -1135,127 +1146,133 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">⛓️</span>
-                <div>
-                  <h4 className="font-semibold text-blue-800">Blockchain Verification</h4>
-                  <p className="text-sm text-blue-700">
-                    All contracts are verified and deployed on Avalanche Fuji Testnet. 
-                    Click "Explorer" to view on-chain transactions and "Code" to see smart contract source.
-                  </p>
-                </div>
+            <div className="mt-8 bg-blue-50 p-6 rounded-2xl border border-blue-200">
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <span className="text-4xl animate-glow">⛓️</span>
+                <h4 className="font-bold text-blue-800 text-xl">Blockchain Verification</h4>
               </div>
+              <p className="text-blue-700 text-center">
+                All contracts are <span className="text-green-600 font-bold">verified</span> and deployed on 
+                <span className="text-blue-600 font-bold"> Avalanche Fuji Testnet</span>. 
+                Click <span className="text-orange-600 font-bold">"Explorer"</span> to view on-chain transactions and 
+                <span className="text-purple-600 font-bold">"Code"</span> to see smart contract source.
+              </p>
             </div>
           </div>
         )}
 
         {/* Key Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="text-4xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-orange-600 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-16">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center card-hover animate-slide-up">
+            <div className="text-6xl mb-6 animate-float">🔍</div>
+            <h3 className="text-2xl font-bold text-orange-600 mb-4">
               Chainlink Functions Verification
             </h3>
-            <p className="text-gray-600">
-              Real-time verification of carbon credits using Chainlink Functions to query Gold Standard database
+            <p className="text-gray-600 leading-relaxed">
+              Real-time verification of carbon credits using <span className="text-orange-600 font-bold">Chainlink Functions</span> to query Gold Standard database
             </p>
+            <div className="mt-6 w-full h-1 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full animate-pulse"></div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="text-4xl mb-4">🏷️</div>
-            <h3 className="text-xl font-semibold text-green-600 mb-2">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center card-hover animate-slide-up">
+            <div className="text-6xl mb-6 animate-float">🏷️</div>
+            <h3 className="text-2xl font-bold text-green-600 mb-4">
               Dynamic NFT Metadata
             </h3>
-            <p className="text-gray-600">
-              NFT metadata powered by live Chainlink Functions data including verification status and available credits
+            <p className="text-gray-600 leading-relaxed">
+              NFT metadata powered by live <span className="text-green-600 font-bold">Chainlink Functions</span> data including verification status and available credits
             </p>
+            <div className="mt-6 w-full h-1 bg-gradient-to-r from-green-400 to-blue-400 rounded-full animate-pulse"></div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="text-4xl mb-4">🪙</div>
-            <h3 className="text-xl font-semibold text-purple-600 mb-2">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center card-hover animate-slide-up">
+            <div className="text-6xl mb-6 animate-float">🪙</div>
+            <h3 className="text-2xl font-bold text-purple-600 mb-4">
               Project Tokens
             </h3>
-            <p className="text-gray-600">
-              ERC-20 tokens automatically created with BatchNFTs for carbon credit trading and retirement
+            <p className="text-gray-600 leading-relaxed">
+              <span className="text-purple-600 font-bold">ERC-20 tokens</span> automatically created with BatchNFTs for carbon credit trading and retirement
             </p>
+            <div className="mt-6 w-full h-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"></div>
           </div>
         </div>
 
         {/* BatchNFT Gallery */}
         {connected && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                🎨 BatchNFT Gallery
+          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-12 card-hover animate-slide-up">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-gray-800">
+                <span className="animate-glow text-4xl mr-3">🎨</span> 
+                BatchNFT Gallery
               </h2>
               <button
                 onClick={loadGalleryNFTs}
                 disabled={galleryLoading}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold disabled:opacity-50 hover:scale-105 transition-all duration-300 shadow-lg"
               >
                 {galleryLoading ? '⏳ Loading...' : '🔄 Refresh'}
               </button>
             </div>
             
             {galleryLoading ? (
-              <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-                <p className="text-gray-600">Loading BatchNFTs...</p>
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-6"></div>
+                <p className="text-gray-600 text-lg">Loading BatchNFTs...</p>
               </div>
             ) : galleryNFTs.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {galleryNFTs.map((nft) => (
-                  <div key={nft.batchId} className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                  <div key={nft.batchId} className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl border border-gray-200 p-6 card-hover animate-slide-up shadow-lg">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg animate-pulse">
                         #{nft.batchId}
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        nft.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                      <div className={`px-4 py-2 rounded-full text-sm font-bold ${
+                        nft.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-600'
                       }`}>
                         {nft.isActive ? '✅ Active' : '❌ Inactive'}
                       </div>
                     </div>
                     
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">
                       Project {nft.projectId}
                     </h3>
                     
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
+                    <div className="space-y-3 text-sm mb-6">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-600">Total Credits:</span>
-                        <span className="font-medium">{nft.totalCredits} tonnes</span>
+                        <span className="font-bold">{nft.totalCredits} tonnes</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-600">Issued:</span>
-                        <span className="font-medium text-green-600">{nft.issuedCredits}</span>
+                        <span className="font-bold text-green-600">{nft.issuedCredits}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-600">Retired:</span>
-                        <span className="font-medium text-red-600">{nft.retiredCredits}</span>
+                        <span className="font-bold text-red-600">{nft.retiredCredits}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-600">Available:</span>
-                        <span className="font-medium text-blue-600">
+                        <span className="font-bold text-blue-600">
                           {(parseFloat(nft.totalCredits) - parseFloat(nft.retiredCredits)).toFixed(2)}
                         </span>
                       </div>
                     </div>
                     
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mb-6 pt-4 border-t border-gray-200">
                       <p className="text-xs text-gray-500 mb-2">ProjectToken:</p>
-                      <p className="text-xs font-mono text-gray-700 break-all bg-gray-100 p-2 rounded">
+                      <p className="text-xs font-mono text-gray-700 break-all bg-gray-100 p-3 rounded-lg">
                         {nft.projectTokenAddress}
                       </p>
                     </div>
                     
-                    <div className="mt-4 flex space-x-2">
+                    <div className="flex space-x-3 mb-4">
                       <button
                         onClick={() => fetchProjectDetails(nft.projectId)}
                         disabled={projectDetailsLoading}
-                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+                        className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl text-sm hover:bg-blue-700 disabled:opacity-50 hover:scale-105 transition-all duration-300 shadow-lg"
                       >
                         {projectDetailsLoading ? '⏳' : '📊 View Details'}
                       </button>
@@ -1267,35 +1284,35 @@ export default function Home() {
                           await checkTokenBalanceWithParams(nft.projectTokenAddress, walletAddress);
                         }}
                         disabled={!!txLoading}
-                        className="flex-1 bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-50"
+                        className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-xl text-sm hover:bg-purple-700 disabled:opacity-50 hover:scale-105 transition-all duration-300 shadow-lg"
                       >
                         {txLoading === 'Check Token Balance' ? '⏳' : '🪙 Check Token'}
                       </button>
                     </div>
                     
-                    <p className="text-xs text-gray-500 mt-3">
+                    <p className="text-xs text-gray-500 text-center">
                       Created: {nft.createdAt}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-xl">
-                <div className="text-6xl mb-4">🎨</div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">No BatchNFTs Found</h3>
-                <p className="text-gray-600 mb-4">Start by registering and verifying carbon credits, then mint your first BatchNFT!</p>
-                <div className="flex justify-center space-x-4">
+              <div className="text-center py-16 bg-gray-50 rounded-2xl">
+                <div className="text-8xl mb-6 animate-float">🎨</div>
+                <h3 className="text-2xl font-bold text-gray-700 mb-4">No BatchNFTs Found</h3>
+                <p className="text-gray-600 mb-8 text-lg">Start by registering and verifying carbon credits, then mint your first BatchNFT!</p>
+                <div className="flex justify-center space-x-6">
                   <button
                     onClick={() => setActiveTab('register')}
-                    className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+                    className="bg-orange-600 text-white px-6 py-4 rounded-2xl font-bold hover:bg-orange-700 hover:scale-105 transition-all duration-300 shadow-lg"
                   >
-                    Register Credit
+                    📝 Register Credit
                   </button>
                   <button
                     onClick={() => setActiveTab('mint-batch')}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    className="bg-green-600 text-white px-6 py-4 rounded-2xl font-bold hover:bg-green-700 hover:scale-105 transition-all duration-300 shadow-lg"
                   >
-                    Mint BatchNFT
+                    🎨 Mint BatchNFT
                   </button>
                 </div>
               </div>
@@ -1308,21 +1325,21 @@ export default function Home() {
           <div className="space-y-8">
 
             {/* Interactive Tabs */}
-            <div className="bg-white rounded-lg shadow-lg">
+            <div className="bg-white rounded-3xl shadow-2xl animate-slide-up">
               {/* Tab Headers */}
-              <div className="border-b border-gray-200">
-                <div className="flex flex-wrap">
+              <div className="border-b border-gray-200 p-2">
+                <div className="flex flex-wrap gap-2">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                      className={`tab-fancy px-6 py-4 text-sm font-bold rounded-2xl transition-all duration-300 ${
                         activeTab === tab.id
-                          ? 'border-blue-600 text-blue-600 bg-blue-50'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ? 'active bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      <span className="mr-2">{tab.icon}</span>
+                      <span className="mr-3 text-xl">{tab.icon}</span>
                       {tab.label}
                     </button>
                   ))}
@@ -1330,7 +1347,7 @@ export default function Home() {
               </div>
 
               {/* Tab Content */}
-              <div className="p-6">
+              <div className="p-8">
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
